@@ -8,7 +8,7 @@ const fs = require('fs');
 
 const app = express();
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
 
 // ─── Simple JSON file database (works on Replit free tier) ───
 const DB_FILE = path.join(__dirname, 'data.json');
