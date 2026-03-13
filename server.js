@@ -5,14 +5,17 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-
+ 
 const app = express();
 app.use(express.json());
 app.use(express.static(__dirname));
-
+ 
 // ─── Simple JSON file database (works on Replit free tier) ───
-const DB_FILE = path.join(__dirname, 'data.json');
-
+// Store data in /app/data so Docker volume persists it
+const DATA_DIR = process.env.DATA_DIR || path.join(__dirname, 'data');
+if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+const DB_FILE = path.join(DATA_DIR, 'data.json');
+ 
 function readDB() {
   if (!fs.existsSync(DB_FILE)) {
     const init = {
@@ -30,17 +33,17 @@ function readDB() {
   }
   return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
 }
-
+ 
 function writeDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf8');
 }
-
+ 
 // ─── API: GET project ───
 app.get('/api/project', (req, res) => {
   const db = readDB();
   res.json(db.project);
 });
-
+ 
 // ─── API: PUT project ───
 app.put('/api/project', (req, res) => {
   const db = readDB();
@@ -48,13 +51,13 @@ app.put('/api/project', (req, res) => {
   writeDB(db);
   res.json({ ok: true, project: db.project });
 });
-
+ 
 // ─── API: GET all periods ───
 app.get('/api/periods', (req, res) => {
   const db = readDB();
   res.json(db.periods.sort((a, b) => a.no - b.no));
 });
-
+ 
 // ─── API: POST new period ───
 app.post('/api/periods', (req, res) => {
   const db = readDB();
@@ -68,7 +71,7 @@ app.post('/api/periods', (req, res) => {
   writeDB(db);
   res.json({ ok: true, period });
 });
-
+ 
 // ─── API: PUT update period ───
 app.put('/api/periods/:no', (req, res) => {
   const db = readDB();
@@ -79,7 +82,7 @@ app.put('/api/periods/:no', (req, res) => {
   writeDB(db);
   res.json({ ok: true, period: db.periods[idx] });
 });
-
+ 
 // ─── API: DELETE period ───
 app.delete('/api/periods/:no', (req, res) => {
   const db = readDB();
@@ -88,11 +91,12 @@ app.delete('/api/periods/:no', (req, res) => {
   writeDB(db);
   res.json({ ok: true });
 });
-
+ 
 // ─── Serve frontend for all other routes ───
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
-
+});
+ 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`✅ Payment Claim Server running on port ${PORT}`);
