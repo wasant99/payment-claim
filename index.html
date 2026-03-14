@@ -60,9 +60,9 @@ body{font-family:'Sarabun','Noto Sans Thai',Arial,sans-serif;background:#0f172a;
 .qty-inp.over:focus{border-color:#dc2626}
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:11px;min-width:920px}
-th{background:#1B3A6B;color:#fff;padding:7px;text-align:center;font-weight:700;font-size:10px;border-right:1px solid rgba(255,255,255,0.08);white-space:nowrap}
+th{background:#1B3A6B;color:#fff;padding:7px;text-align:center;font-weight:700;font-size:10px;white-space:nowrap}
 th.th-or{background:#b85a14}th.th-bl{background:#1e3f7a}th.th-gr{background:#2d3748}
-td{padding:5px 7px;border-bottom:1px solid rgba(255,255,255,0.05);border-right:1px solid rgba(255,255,255,0.04);color:#cbd5e1;vertical-align:middle}
+td{padding:5px 7px;border-bottom:1px solid rgba(255,255,255,0.05);color:#cbd5e1;vertical-align:middle}
 td.r{text-align:right;font-family:monospace;white-space:nowrap;font-size:11px}
 td.c{text-align:center}td.l{text-align:left}
 tr.grp-row td{background:#1B3A6B;color:#fff;font-weight:700;font-size:12px;padding:7px 12px}
@@ -106,7 +106,13 @@ tr.sum-row{cursor:pointer}tr.sum-row:hover td{background:rgba(27,58,107,0.4)}
 <!-- Login Screen -->
 <div id="login-screen" class="login-screen">
   <div class="login-card">
-    <div style="font-size:48px;margin-bottom:16px">📋</div>
+    <div style="margin-bottom:16px;display:flex;justify-content:center">
+      <div style="width:80px;height:80px;background:#F47920;border-radius:18px;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(244,121,32,0.4)">
+        <span style="color:#fff;font-family:Arial;font-weight:900;font-size:22px;line-height:1;letter-spacing:1px">THC</span>
+        <div style="width:46px;height:3px;background:#fff;border-radius:2px;margin:5px 0 3px"></div>
+        <svg width="40" height="18" viewBox="0 0 40 18"><polygon points="20,0 0,18 40,18" fill="#fff" opacity="0.9"/><rect x="14" y="8" width="12" height="10" fill="#F47920"/></svg>
+      </div>
+    </div>
     <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">ระบบใบส่งงาน</div>
     <div style="font-size:13px;color:#64748b;margin-bottom:28px">Payment Claim System<br>ข้อมูลเก็บใน Google Sheets ของคุณ</div>
     <button class="btn btn-orange" style="width:100%;padding:12px;font-size:14px;justify-content:center" onclick="signIn()">
@@ -425,6 +431,13 @@ function saveIndexLocal(arr){
 
 // ─── UTILS ───
 function N(v,d=2){return isNaN(v)||v===null?'-':Number(v).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function D(dateStr){
+  if(!dateStr)return '-';
+  // input: YYYY-MM-DD or YYYY-MM-DD (Buddhist or Gregorian)
+  const parts=dateStr.split('-');
+  if(parts.length!==3)return dateStr;
+  return parts[2]+'/'+parts[1]+'/'+parts[0];
+}
 function P(v){return(!isFinite(v)||isNaN(v))?'-':(v*100).toFixed(1)+'%'}
 function getRate(sid){return (proj.workItems?.[sid]?.rate)||ALL.find(s=>s.id===sid)?.rate||0;}
 function getQty(sid){return (proj.workItems?.[sid]?.qty)||ALL.find(s=>s.id===sid)?.qty||0;}
@@ -698,7 +711,7 @@ function renderSidebar(){
     <div class="side-item" id="nav-p-${p.no}" onclick="setView('detail',${p.no})">
       <span style="width:20px;height:20px;background:#1B3A6B;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#F47920;font-weight:700;flex-shrink:0">${p.no}</span>
       ครั้งที่ ${p.no}
-      <span style="margin-left:auto;font-size:10px;color:#475569">${p.date?p.date.slice(5):''}</span>
+      <span style="margin-left:auto;font-size:10px;color:#475569">${p.date?D(p.date):''}</span>
     </div>`).join('');
   if(view==='summary'){const el=document.getElementById('nav-summary');if(el)el.classList.add('active')}
   if(view==='new'){const el=document.getElementById('nav-new');if(el)el.classList.add('active')}
@@ -747,7 +760,7 @@ function renderSummary(){
       const prevCum=cum2;
       cum2+=t.grand;
       return `<tr class="sum-row" onclick="setView('detail',${p.no})">
-        <td class="c" style="color:#F47920;font-weight:700">${p.no}</td><td class="c">${p.date||'-'}</td>
+        <td class="c" style="color:#F47920;font-weight:700">${p.no}</td><td class="c">${D(p.date)}</td>
         <td class="r">${N(t.base)}</td><td class="r">${N(t.vat)}</td>
         <td class="r" style="color:#F47920;font-weight:700">${N(t.grand)}</td>
         <td class="r" style="color:#94a3b8">${prevCum>0?N(prevCum):'-'}</td>
@@ -895,6 +908,7 @@ function renderDetail(no){
         <td class="r" style="background:rgba(30,63,122,0.3)">${getQty(s.id)>0&&pq>0?P(pq/getQty(s.id)):'-'}</td>
         <td class="r" style="background:rgba(30,63,122,0.3)">${pv>0?N(pv):'-'}</td>
         <td class="r" style="background:rgba(34,197,94,0.1);color:#86efac">${tq>0?N(tq,2):'-'}</td>
+        <td class="r" style="background:rgba(34,197,94,0.1);color:#86efac">${getQty(s.id)>0&&tq>0?P(tq/getQty(s.id)):'-'}</td>
         <td class="r" style="background:rgba(34,197,94,0.1);color:#86efac">${tv>0?N(tv):'-'}</td>
         <td class="r">${cq>0?N(cq,2):'-'}</td><td class="r">${getQty(s.id)>0&&cq>0?P(cq/getQty(s.id)):'-'}</td>
         <td class="r">${cv2>0?N(cv2):'-'}</td>
@@ -905,7 +919,7 @@ function renderDetail(no){
   });
   return `
   <div class="ph">
-    <div><div class="ph-title">📄 ใบเบิกครั้งที่ ${no}</div><div class="ph-sub">วันที่: ${p.date||'-'} · ${proj.name||pid}</div></div>
+    <div><div class="ph-title">📄 ใบเบิกครั้งที่ ${no}</div><div class="ph-sub">วันที่: ${D(p.date)} · ${proj.name||pid}</div></div>
     <div class="btn-group">
       <button class="btn" onclick="setView('summary')">← กลับ</button>
       <button class="btn btn-sm" onclick="startEdit(${no})">✏️ แก้ไข</button>
@@ -919,7 +933,7 @@ function renderDetail(no){
     <div class="kpi" style="border-top:3px solid #a78bfa"><div class="kpi-lbl">% สะสม</div><div class="kpi-val" style="color:#c4b5fd">${P(prog)}</div></div>
   </div>
   <div class="card">
-    <div class="card-hd"><span class="card-hd-title">รายละเอียดการเบิกเงิน — ครั้งที่ ${no}</span><span class="badge">${p.date||'-'}</span></div>
+    <div class="card-hd"><span class="card-hd-title">รายละเอียดการเบิกเงิน — ครั้งที่ ${no}</span><span class="badge">${D(p.date)}</span></div>
     <div class="meta-grid">
       <div class="meta-cell"><div class="meta-lbl">โครงการ</div><div class="meta-val">${proj.name||pid}</div></div>
       <div class="meta-cell"><div class="meta-lbl">เจ้าของโครงการ</div><div class="meta-val">${proj.contractor||''}</div></div>
@@ -932,22 +946,22 @@ function renderDetail(no){
           <th rowspan="2">ปริมาณรวม</th><th rowspan="2">หน่วย</th>
           <th rowspan="2">ราคา/หน่วย</th><th rowspan="2">มูลค่ารวม</th>
           <th colspan="3" style="background:#1e3f7a;color:#fff;text-align:center">สะสมถึงครั้งที่แล้ว</th>
-          <th colspan="2" class="th-or">เบิกครั้งนี้</th>
+          <th colspan="3" class="th-or">เบิกครั้งนี้</th>
           <th colspan="3" class="th-bl">สะสมทั้งหมด</th>
           <th colspan="3" class="th-gr">คงเหลือ</th>
         </tr>
         <tr>
           <th style="background:#1e3f7a;color:#fff">ปริมาณ</th><th style="background:#1e3f7a;color:#fff">%</th><th style="background:#1e3f7a;color:#fff">มูลค่า</th>
-          <th class="th-or">ปริมาณ</th><th class="th-or">มูลค่า (บาท)</th>
+          <th class="th-or">ปริมาณ</th><th class="th-or">%</th><th class="th-or">มูลค่า (บาท)</th>
           <th class="th-bl">ปริมาณ</th><th class="th-bl">%</th><th class="th-bl">มูลค่า</th>
           <th class="th-gr">ปริมาณ</th><th class="th-gr">%</th><th class="th-gr">มูลค่า</th>
         </tr>
       </thead>
       <tbody>${rows}</tbody>
       <tfoot>
-        <tr class="tot-row"><td colspan="5" class="l">มูลค่างาน (ไม่รวม VAT)</td><td colspan="2" class="r">${N(t.base)}</td><td colspan="9"></td></tr>
-        <tr class="vat-row"><td colspan="5" class="l">VAT ${proj.vatRate||7}%</td><td colspan="2" class="r">${N(t.vat)}</td><td colspan="9"></td></tr>
-        <tr class="grd-row"><td colspan="5" class="l">รวมทั้งหมด (รวม VAT)</td><td colspan="2" class="r">${N(t.grand)}</td><td colspan="9"></td></tr>
+        <tr class="tot-row"><td colspan="5" class="l">มูลค่างาน (ไม่รวม VAT)</td><td colspan="3"></td><td colspan="2" class="r">${N(t.base)}</td><td colspan="9"></td></tr>
+        <tr class="vat-row"><td colspan="5" class="l">VAT ${proj.vatRate||7}%</td><td colspan="3"></td><td colspan="2" class="r">${N(t.vat)}</td><td colspan="9"></td></tr>
+        <tr class="grd-row"><td colspan="5" class="l">รวมทั้งหมด (รวม VAT)</td><td colspan="3"></td><td colspan="2" class="r">${N(t.grand)}</td><td colspan="9"></td></tr>
       </tfoot>
     </table></div>
   </div>
@@ -1100,7 +1114,7 @@ function exportCSV(){
 
 function exportPDFSummary(){
   const cv=cvWithVat();let cum=0;
-  const rows=periods.map(p=>{const t=calcTot(p.inputs,proj.vatRate);cum+=t.grand;return`<tr><td style="text-align:center">${p.no}</td><td style="text-align:center">${p.date||'-'}</td><td class="r">${N(t.base)}</td><td class="r">${N(t.vat)}</td><td class="r" style="color:#F47920;font-weight:700">${N(t.grand)}</td><td class="r">${N(cum)}</td><td class="r">${N(cv-cum)}</td><td class="r">${P(cum/cv)}</td></tr>`}).join('');
+  const rows=periods.map(p=>{const t=calcTot(p.inputs,proj.vatRate);cum+=t.grand;return`<tr><td style="text-align:center">${p.no}</td><td style="text-align:center">${D(p.date)}</td><td class="r">${N(t.base)}</td><td class="r">${N(t.vat)}</td><td class="r" style="color:#F47920;font-weight:700">${N(t.grand)}</td><td class="r">${N(cum)}</td><td class="r">${N(cv-cum)}</td><td class="r">${P(cum/cv)}</td></tr>`}).join('');
   const sb=periods.reduce((a,p)=>a+calcTot(p.inputs,proj.vatRate).base,0),sv=periods.reduce((a,p)=>a+calcTot(p.inputs,proj.vatRate).vat,0);
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>สรุปยอด</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">${buildPrintCSS()}</head><body><h2>ตารางสรุปยอดรายการส่งงาน</h2><h3>${proj.name} | ${proj.contractor}</h3><div class="info"><div><b>ประเภทงาน:</b> ${proj.workType}</div><div><b>มูลค่าสัญญา(รวมVAT):</b> ${N(cv)} บาท</div><div><b>จำนวนครั้ง:</b> ${periods.length} ครั้ง</div></div><table><thead><tr><th>ครั้งที่</th><th>วันที่</th><th>ขอเบิก(ไม่รวมVAT)</th><th>VAT</th><th>รวม(รวมVAT)</th><th>สะสม</th><th>คงเหลือ</th><th>%</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="2" style="background:#F47920;color:#fff;font-weight:700;text-align:center">รวม</td><td class="r" style="background:#F47920;color:#fff;font-weight:700">${N(sb)}</td><td class="r" style="background:#F47920;color:#fff;font-weight:700">${N(sv)}</td><td class="r" style="background:#F47920;color:#fff;font-weight:700">${N(cum)}</td><td colspan="3" style="background:rgba(244,121,32,0.1)"></td></tr></tfoot></table><button onclick="window.print()">🖨 พิมพ์ / บันทึก PDF</button></body></html>`;
   const b=new Blob([html],{type:'text/html'});window.open(URL.createObjectURL(b),'_blank');
@@ -1133,6 +1147,7 @@ function printPeriod(no){
         <td class="r" style="background:#e8f0fe">${getQty(s.id)>0&&pq>0?P(pq/getQty(s.id)):'-'}</td>
         <td class="r" style="background:#e8f0fe">${pv>0?N(pv):'-'}</td>
         <td class="r" style="background:#f0fff4">${tq>0?N(tq,2):'-'}</td>
+        <td class="r" style="background:#f0fff4">${getQty(s.id)>0&&tq>0?P(tq/getQty(s.id)):'-'}</td>
         <td class="r" style="background:#f0fff4">${tv>0?N(tv):'-'}</td>
         <td class="r">${cq>0?N(cq,2):'-'}</td>
         <td class="r">${getQty(s.id)>0&&cq>0?P(cq/getQty(s.id)):'-'}</td>
@@ -1152,7 +1167,7 @@ function printPeriod(no){
     table{width:100%;border-collapse:collapse;font-size:8.5px;margin-bottom:10px}
     th{background:#1B3A6B;color:white;padding:4px 5px;text-align:center;font-weight:700;font-size:8px;border:1px solid #ccc}
     th.or{background:#b85a14}th.bl{background:#1e3f7a}th.gr{background:#2d3748}
-    td{padding:3px 5px;border-bottom:1px solid #e2e8f0;border-right:1px solid #f0f0f0}
+    td{padding:3px 5px;border-bottom:1px solid #e2e8f0}
     td.r{text-align:right;font-family:monospace}
     .grp td{background:#1B3A6B;color:white;font-weight:700;padding:4px 8px}
     .tot td{background:#1B3A6B;color:white;font-weight:700;font-family:monospace;padding:5px}
@@ -1169,7 +1184,7 @@ function printPeriod(no){
     <div class="info">
       <div><b>รหัส:</b> ${proj.code||'-'}</div>
       <div><b>ประเภทงาน:</b> ${proj.workType||'-'}</div>
-      <div><b>วันที่:</b> ${p.date||'-'}</div>
+      <div><b>วันที่:</b> ${D(p.date)}</div>
     </div>
     <table>
       <thead>
@@ -1178,13 +1193,13 @@ function printPeriod(no){
           <th rowspan="2">ปริมาณรวม</th><th rowspan="2">หน่วย</th>
           <th rowspan="2">ราคา/หน่วย</th><th rowspan="2">มูลค่ารวม</th>
           <th colspan="3" class="bl">สะสมถึงครั้งที่แล้ว</th>
-          <th colspan="2" class="or">เบิกครั้งนี้</th>
+          <th colspan="3" class="or">เบิกครั้งนี้</th>
           <th colspan="3">สะสมทั้งหมด</th>
           <th colspan="3" class="gr">คงเหลือ</th>
         </tr>
         <tr>
           <th class="bl">ปริมาณ</th><th class="bl">%</th><th class="bl">มูลค่า</th>
-          <th class="or">ปริมาณ</th><th class="or">มูลค่า</th>
+          <th class="or">ปริมาณ</th><th class="or">%</th><th class="or">มูลค่า</th>
           <th>ปริมาณ</th><th>%</th><th>มูลค่า</th>
           <th class="gr">ปริมาณ</th><th class="gr">%</th><th class="gr">มูลค่า</th>
         </tr>
@@ -1195,7 +1210,7 @@ function printPeriod(no){
           <td colspan="4">มูลค่างาน (ไม่รวม VAT)</td>
           <td class="r">${N(proj.contractValue)}</td>
           <td colspan="2"></td><td class="r">${tPrev.base>0?N(tPrev.base):'-'}</td>
-          <td></td><td class="r">${N(t.base)}</td>
+          <td colspan="2"></td><td class="r">${N(t.base)}</td>
           <td colspan="2"></td><td class="r">${N(tCum.base)}</td>
           <td colspan="2"></td><td class="r">${N(proj.contractValue-tCum.base)}</td>
         </tr>
@@ -1203,7 +1218,7 @@ function printPeriod(no){
           <td colspan="4">VAT ${proj.vatRate||7}%</td>
           <td class="r">${N(proj.contractValue*(proj.vatRate||7)/100)}</td>
           <td colspan="2"></td><td class="r">${tPrev.vat>0?N(tPrev.vat):'-'}</td>
-          <td></td><td class="r">${N(t.vat)}</td>
+          <td colspan="2"></td><td class="r">${N(t.vat)}</td>
           <td colspan="2"></td><td class="r">${N(tCum.vat)}</td>
           <td colspan="3"></td>
         </tr>
@@ -1211,7 +1226,7 @@ function printPeriod(no){
           <td colspan="4">รวมทั้งหมด (รวม VAT)</td>
           <td class="r">${N(cvWithVat())}</td>
           <td colspan="2"></td><td class="r">${tPrev.grand>0?N(tPrev.grand):'-'}</td>
-          <td></td><td class="r">${N(t.grand)}</td>
+          <td colspan="2"></td><td class="r">${N(t.grand)}</td>
           <td colspan="2"></td><td class="r">${N(tCum.grand)}</td>
           <td colspan="2"></td><td class="r">${N(cv-tCum.grand)}</td>
         </tr>
