@@ -205,6 +205,18 @@ tr.sum-row{cursor:pointer}tr.sum-row:hover td{background:rgba(27,58,107,0.4)}
     <div class="fg"><label>ประเภทงาน</label><input class="inp" id="f-type"></div>
     <div class="fg"><label>มูลค่าสัญญา (ไม่รวม VAT) บาท</label><input class="inp" id="f-cv" type="number" step="0.01"></div>
     <div class="fg"><label>อัตรา VAT (%)</label><input class="inp" id="f-vat" type="number" step="0.1"></div>
+    <hr style="border-color:rgba(255,255,255,0.08);margin:16px 0">
+    <div style="font-size:12px;font-weight:700;color:#F47920;margin-bottom:10px">📋 ปริมาณและราคาต่อหน่วย (ตามสัญญา)</div>
+    <div style="max-height:320px;overflow-y:auto;border:1px solid rgba(255,255,255,0.08);border-radius:8px">
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead><tr>
+          <th style="background:#1B3A6B;color:#fff;padding:6px 8px;text-align:left;position:sticky;top:0">รายการ</th>
+          <th style="background:#1B3A6B;color:#fff;padding:6px 8px;text-align:center;white-space:nowrap;position:sticky;top:0">ปริมาณ</th>
+          <th style="background:#1B3A6B;color:#fff;padding:6px 8px;text-align:center;white-space:nowrap;position:sticky;top:0">ราคา/หน่วย</th>
+        </tr></thead>
+        <tbody id="f-work-rows"></tbody>
+      </table>
+    </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('modal-project')">ยกเลิก</button>
       <button class="btn btn-navy" onclick="saveProject()">💾 บันทึก</button>
@@ -388,7 +400,9 @@ function saveIndexLocal(arr){
 // ─── UTILS ───
 function N(v,d=2){return isNaN(v)||v===null?'-':Number(v).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d})}
 function P(v){return(!isFinite(v)||isNaN(v))?'-':(v*100).toFixed(1)+'%'}
-function calcTot(inp,vr){let b=0;ALL.forEach(s=>{b+=(parseFloat(inp?.[s.id])||0)*s.rate});const vat=b*(vr||7)/100;return{base:b,vat,grand:b+vat}}
+function getRate(sid){return (proj.workItems?.[sid]?.rate)||ALL.find(s=>s.id===sid)?.rate||0;}
+function getQty(sid){return (proj.workItems?.[sid]?.qty)||ALL.find(s=>s.id===sid)?.qty||0;}
+function calcTot(inp,vr){let b=0;ALL.forEach(s=>{b+=(parseFloat(inp?.[s.id])||0)*getRate(s.id)});const vat=b*(vr||7)/100;return{base:b,vat,grand:b+vat}}
 function calcCum(ps,upTo){const c={};ps.filter(p=>p.no<=upTo).forEach(p=>ALL.forEach(s=>{c[s.id]=(c[s.id]||0)+(parseFloat(p.inputs?.[s.id])||0)}));return c}
 function calcCumExcl(excNo){const c={};periods.filter(p=>excNo==null?true:p.no!==excNo).forEach(p=>ALL.forEach(s=>{c[s.id]=(c[s.id]||0)+(parseFloat(p.inputs?.[s.id])||0)}));return c}
 function cvWithVat(){return (proj.contractValue||0)*(1+(proj.vatRate||7)/100)}
@@ -673,7 +687,7 @@ function renderSummary(){
           <td class="r" style="background:#F47920;color:#fff;font-weight:700">${N(sb)}</td>
           <td class="r" style="background:#F47920;color:#fff;font-weight:700">${N(sv)}</td>
           <td class="r" style="background:#F47920;color:#fff;font-weight:800">${N(cumG)}</td>
-          <td colspan="5" style="background:rgba(244,121,32,0.15)"></td>
+          <td style="background:rgba(244,121,32,0.15)"></td><td colspan="4" style="background:rgba(244,121,32,0.15)"></td>
         </tr></tfoot>
       </table></div>
       <div class="tbl-actions">
@@ -693,22 +707,22 @@ function renderForm(editNo){
   WORK.forEach(g=>{
     rows+=`<tr class="grp-row"><td colspan="13">${g.g}. ${g.label}</td></tr>`;
     g.items.forEach(s=>{
-      const tq=parseFloat(editInputs[s.id]||0),tv=tq*s.rate;
-      const cq=cum[s.id]||0,cv2=cq*s.rate,rq=s.qty>0?s.qty-cq:0;
+      const tq=parseFloat(editInputs[s.id]||0),tv=tq*getRate(s.id);
+      const cq=cum[s.id]||0,cv2=cq*getRate(s.id),rq=getQty(s.id)>0?getQty(s.id)-cq:0;
       rows+=`<tr>
         <td class="l" style="padding-left:14px">${s.desc}</td>
-        <td class="r">${s.qty>0?N(s.qty,0):'-'}</td><td class="c">${s.unit}</td>
-        <td class="r">${s.rate>0?N(s.rate):'-'}</td>
-        <td class="r">${s.qty>0&&s.rate>0?N(s.qty*s.rate):'-'}</td>
-        ${(s.qty===0 || rq<=0)
+        <td class="r">${getQty(s.id)>0?N(getQty(s.id),0):'-'}</td><td class="c">${s.unit}</td>
+        <td class="r">${getRate(s.id)>0?N(getRate(s.id)):'-'}</td>
+        <td class="r">${getQty(s.id)>0&&getRate(s.id)>0?N(getQty(s.id)*getRate(s.id)):'-'}</td>
+        ${(getQty(s.id)===0 || rq<=0)
           ? `<td style="text-align:center;background:rgba(255,255,255,0.02);color:#1e293b">—</td>`
           : `<td style="text-align:right;background:rgba(34,197,94,0.08)"><input class="qty-inp" type="number" min="0" step="any" value="${editInputs[s.id]||''}" placeholder="0" oninput="validateQty(this,'${s.id}',${rq})"></td>`
         }
         <td class="r" id="fv-${s.id}">${tv>0?N(tv):'-'}</td>
-        <td class="r">${cq>0?N(cq,2):'-'}</td><td class="r">${s.qty>0&&cq>0?P(cq/s.qty):'-'}</td>
+        <td class="r">${cq>0?N(cq,2):'-'}</td><td class="r">${getQty(s.id)>0&&cq>0?P(cq/getQty(s.id)):'-'}</td>
         <td class="r">${cv2>0?N(cv2):'-'}</td>
-        <td class="r">${rq>0?N(rq,2):'-'}</td><td class="r">${s.qty>0&&rq>0?P(rq/s.qty):'-'}</td>
-        <td class="r">${rq>0&&s.rate>0?N(rq*s.rate):'-'}</td>
+        <td class="r">${rq>0?N(rq,2):'-'}</td><td class="r">${getQty(s.id)>0&&rq>0?P(rq/getQty(s.id)):'-'}</td>
+        <td class="r">${rq>0&&getRate(s.id)>0?N(rq*getRate(s.id)):'-'}</td>
       </tr>`;
     });
   });
@@ -782,17 +796,17 @@ function renderDetail(no){
   WORK.forEach(g=>{
     rows+=`<tr class="grp-row"><td colspan="13">${g.g}. ${g.label}</td></tr>`;
     g.items.forEach(s=>{
-      const tq=parseFloat(p.inputs?.[s.id]||0),tv=tq*s.rate,cq=cum[s.id]||0,cv2=cq*s.rate,rq=s.qty>0?s.qty-cq:0;
+      const tq=parseFloat(p.inputs?.[s.id]||0),tv=tq*getRate(s.id),cq=cum[s.id]||0,cv2=cq*getRate(s.id),rq=getQty(s.id)>0?getQty(s.id)-cq:0;
       rows+=`<tr>
         <td class="l" style="padding-left:14px">${s.desc}</td>
-        <td class="r">${s.qty>0?N(s.qty,0):'-'}</td><td class="c">${s.unit}</td>
-        <td class="r">${s.rate>0?N(s.rate):'-'}</td><td class="r">${s.qty>0&&s.rate>0?N(s.qty*s.rate):'-'}</td>
+        <td class="r">${getQty(s.id)>0?N(getQty(s.id),0):'-'}</td><td class="c">${s.unit}</td>
+        <td class="r">${getRate(s.id)>0?N(getRate(s.id)):'-'}</td><td class="r">${getQty(s.id)>0&&getRate(s.id)>0?N(getQty(s.id)*getRate(s.id)):'-'}</td>
         <td class="r" style="background:rgba(34,197,94,0.1);color:#86efac">${tq>0?N(tq,2):'-'}</td>
         <td class="r" style="background:rgba(34,197,94,0.1);color:#86efac">${tv>0?N(tv):'-'}</td>
-        <td class="r">${cq>0?N(cq,2):'-'}</td><td class="r">${s.qty>0&&cq>0?P(cq/s.qty):'-'}</td>
+        <td class="r">${cq>0?N(cq,2):'-'}</td><td class="r">${getQty(s.id)>0&&cq>0?P(cq/getQty(s.id)):'-'}</td>
         <td class="r">${cv2>0?N(cv2):'-'}</td>
-        <td class="r">${rq>0?N(rq,2):'-'}</td><td class="r">${s.qty>0&&rq>0?P(rq/s.qty):'-'}</td>
-        <td class="r">${rq>0&&s.rate>0?N(rq*s.rate):'-'}</td>
+        <td class="r">${rq>0?N(rq,2):'-'}</td><td class="r">${getQty(s.id)>0&&rq>0?P(rq/getQty(s.id)):'-'}</td>
+        <td class="r">${rq>0&&getRate(s.id)>0?N(rq*getRate(s.id)):'-'}</td>
       </tr>`;
     });
   });
@@ -802,9 +816,6 @@ function renderDetail(no){
     <div class="btn-group">
       <button class="btn" onclick="setView('summary')">← กลับ</button>
       <button class="btn btn-sm" onclick="startEdit(${no})">✏️ แก้ไข</button>
-      <button class="btn btn-sm btn-navy" onclick="printPeriod(${no})">🖨 Print ใบเบิก</button>
-      <button class="btn btn-sm" onclick="exportCSVDetail(${no})">📤 Export CSV</button>
-      <button class="btn btn-sm btn-navy" onclick="exportPDFSummary()">🖨 Print สรุป</button>
       <button class="btn btn-danger btn-sm" onclick="delPeriod(${no})">🗑 ลบ</button>
     </div>
   </div>
@@ -834,6 +845,11 @@ function renderDetail(no){
         <tr class="grd-row"><td colspan="5" class="l">รวมทั้งหมด (รวม VAT)</td><td colspan="2" class="r">${N(t.grand)}</td><td colspan="6"></td></tr>
       </tfoot>
     </table></div>
+  </div>
+  <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px">
+    <button class="btn btn-sm" onclick="exportCSVDetail(${no})">📤 Export CSV</button>
+    <button class="btn btn-sm btn-navy" onclick="exportPDFSummary()">🖨 Print สรุป</button>
+    <button class="btn btn-sm btn-navy" onclick="printPeriod(${no})">🖨 Print ใบเบิก</button>
   </div>`;
 }
 
@@ -887,12 +903,33 @@ function openProjectModal(){
   document.getElementById('f-type').value=proj.workType||'';
   document.getElementById('f-cv').value=proj.contractValue||'';
   document.getElementById('f-vat').value=proj.vatRate||7;
+  // Render work items table
+  const workItems=proj.workItems||{};
+  let rows='';
+  WORK.forEach(g=>{
+    rows+=`<tr><td colspan="3" style="background:#0f2549;color:#F47920;font-weight:700;padding:5px 8px;font-size:10px">${g.g}. ${g.label}</td></tr>`;
+    g.items.forEach(s=>{
+      const wi=workItems[s.id]||{};
+      rows+=`<tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
+        <td style="padding:4px 8px;color:#cbd5e1">${s.desc}</td>
+        <td style="padding:4px 6px;text-align:center"><input class="qty-inp" type="number" min="0" step="any" style="width:72px" value="${wi.qty||''}" placeholder="0" id="wi-qty-${s.id}"></td>
+        <td style="padding:4px 6px;text-align:center"><input class="qty-inp" type="number" min="0" step="any" style="width:88px" value="${wi.rate||''}" placeholder="0.00" id="wi-rate-${s.id}"></td>
+      </tr>`;
+    });
+  });
+  document.getElementById('f-work-rows').innerHTML=rows;
   document.getElementById('modal-project').style.display='flex';
 }
 function closeModal(id){document.getElementById(id).style.display='none'}
 
 async function saveProject(){
-  const p={code:document.getElementById('f-code').value.trim(),name:document.getElementById('f-name').value.trim(),contractor:document.getElementById('f-contractor').value.trim(),workType:document.getElementById('f-type').value.trim(),contractValue:parseFloat(document.getElementById('f-cv').value)||0,vatRate:parseFloat(document.getElementById('f-vat').value)||7};
+  const workItems={};
+  WORK.forEach(g=>g.items.forEach(s=>{
+    const qty=parseFloat(document.getElementById('wi-qty-'+s.id)?.value)||0;
+    const rate=parseFloat(document.getElementById('wi-rate-'+s.id)?.value)||0;
+    if(qty>0||rate>0) workItems[s.id]={qty,rate};
+  }));
+  const p={code:document.getElementById('f-code').value.trim(),name:document.getElementById('f-name').value.trim(),contractor:document.getElementById('f-contractor').value.trim(),workType:document.getElementById('f-type').value.trim(),contractValue:parseFloat(document.getElementById('f-cv').value)||0,vatRate:parseFloat(document.getElementById('f-vat').value)||7,workItems};
   const entry=allProjects.find(x=>x.id===pid);
   if(!entry)return;
   try{
