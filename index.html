@@ -1112,6 +1112,9 @@ function printPeriod(no){
   const t=calcTot(p.inputs,proj.vatRate);
   const cum=calcCum(periods,no);
   const cumPrev=calcCum(periods,no-1);
+  const tPrev=calcTot(Object.fromEntries(ALL.map(s=>[s.id,cumPrev[s.id]||0])),proj.vatRate);
+  const tCum=calcTot(Object.fromEntries(ALL.map(s=>[s.id,cum[s.id]||0])),proj.vatRate);
+  const cv=cvWithVat();
   let rows='';
   WORK.forEach(g=>{
     rows+=`<tr><td colspan="16" style="background:#1B3A6B;color:white;font-weight:700;padding:6px 10px">${g.g}. ${g.label}</td></tr>`;
@@ -1188,9 +1191,27 @@ function printPeriod(no){
       </thead>
       <tbody>${rows}</tbody>
       <tfoot>
-        <tr class="tot"><td colspan="5">มูลค่างาน (ไม่รวม VAT)</td><td colspan="2" class="r">${N(t.base)} บาท</td><td colspan="9"></td></tr>
-        <tr class="vat"><td colspan="5">VAT ${proj.vatRate||7}%</td><td colspan="2" class="r">${N(t.vat)} บาท</td><td colspan="9"></td></tr>
-        <tr class="grd"><td colspan="5">รวมทั้งหมด (รวม VAT)</td><td colspan="2" class="r">${N(t.grand)} บาท</td><td colspan="9"></td></tr>
+        <tr class="tot">
+          <td colspan="5">มูลค่างาน (ไม่รวม VAT)</td>
+          <td class="r">${tPrev.base>0?N(tPrev.base):'-'}</td><td></td><td class="r">${tPrev.base>0?N(tPrev.base):'-'}</td>
+          <td class="r">${N(t.base)}</td><td class="r">บาท</td>
+          <td class="r">${N(tCum.base)}</td><td></td><td class="r">${N(tCum.base)}</td>
+          <td colspan="3" class="r">${N(proj.contractValue-tCum.base)}</td>
+        </tr>
+        <tr class="vat">
+          <td colspan="5">VAT ${proj.vatRate||7}%</td>
+          <td class="r">${tPrev.vat>0?N(tPrev.vat):'-'}</td><td></td><td class="r">${tPrev.vat>0?N(tPrev.vat):'-'}</td>
+          <td class="r">${N(t.vat)}</td><td class="r">บาท</td>
+          <td class="r">${N(tCum.vat)}</td><td></td><td class="r">${N(tCum.vat)}</td>
+          <td colspan="3"></td>
+        </tr>
+        <tr class="grd">
+          <td colspan="5">รวมทั้งหมด (รวม VAT)</td>
+          <td class="r">${tPrev.grand>0?N(tPrev.grand):'-'}</td><td></td><td class="r">${tPrev.grand>0?N(tPrev.grand):'-'}</td>
+          <td class="r">${N(t.grand)}</td><td class="r">บาท</td>
+          <td class="r">${N(tCum.grand)}</td><td></td><td class="r">${N(tCum.grand)}</td>
+          <td colspan="3" class="r">${N(cv-tCum.grand)}</td>
+        </tr>
       </tfoot>
     </table>
     <button onclick="window.print()">🖨 พิมพ์ / บันทึก PDF</button>
