@@ -206,7 +206,7 @@ tr.sum-row{cursor:pointer}tr.sum-row:hover td{background:rgba(27,58,107,0.4)}
     <div class="fg"><label>ชื่อโครงการ</label><input class="inp" id="np-name" placeholder="เช่น คณาสิริ เอแบค บางนา"></div>
     <div class="fg"><label>เจ้าของโครงการ</label><input class="inp" id="np-contractor"></div>
     <div class="fg"><label>ประเภทงาน</label><input class="inp" id="np-type"></div>
-    <div class="fg"><label>มูลค่าสัญญา (ไม่รวม VAT) บาท <span style="color:#22c55e;font-size:10px">(คำนวณอัตโนมัติ)</span></label><input class="inp" id="np-cv" type="number" step="0.01" readonly style="background:#0a1628;color:#4ade80;cursor:not-allowed;border-color:rgba(34,197,94,0.3)"></div>
+    <div class="fg"><label>มูลค่าสัญญา (ไม่รวม VAT) บาท <span style="color:#22c55e;font-size:10px">(คำนวณอัตโนมัติ)</span></label><input class="inp" id="np-cv" data-raw="0" readonly style="background:#0a1628;color:#4ade80;cursor:not-allowed;border-color:rgba(34,197,94,0.3);font-weight:700;font-size:15px"></div>
     <div class="fg"><label>อัตรา VAT (%)</label><input class="inp" id="np-vat" type="number" value="7" step="0.1"></div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('modal-new-proj')">ยกเลิก</button>
@@ -222,7 +222,7 @@ tr.sum-row{cursor:pointer}tr.sum-row:hover td{background:rgba(27,58,107,0.4)}
     <div class="fg"><label>ชื่อโครงการ</label><input class="inp" id="f-name"></div>
     <div class="fg"><label>เจ้าของโครงการ</label><input class="inp" id="f-contractor"></div>
     <div class="fg"><label>ประเภทงาน</label><input class="inp" id="f-type"></div>
-    <div class="fg"><label>มูลค่าสัญญา (ไม่รวม VAT) บาท <span style="color:#22c55e;font-size:10px">(คำนวณอัตโนมัติจากรายการด้านล่าง)</span></label><input class="inp" id="f-cv" type="number" step="0.01" readonly style="background:#0a1628;color:#4ade80;cursor:not-allowed;border-color:rgba(34,197,94,0.3)"></div>
+    <div class="fg"><label>มูลค่าสัญญา (ไม่รวม VAT) บาท <span style="color:#22c55e;font-size:10px">(คำนวณอัตโนมัติจากรายการด้านล่าง)</span></label><input class="inp" id="f-cv" data-raw="0" readonly style="background:#0a1628;color:#4ade80;cursor:not-allowed;border-color:rgba(34,197,94,0.3);font-weight:700;font-size:15px"></div>
     <div class="fg"><label>อัตรา VAT (%)</label><input class="inp" id="f-vat" type="number" step="0.1"></div>
     <hr style="border-color:rgba(255,255,255,0.08);margin:16px 0">
     <div style="font-size:12px;font-weight:700;color:#F47920;margin-bottom:10px">📋 ปริมาณและราคาต่อหน่วย (ตามสัญญา)</div>
@@ -1014,7 +1014,10 @@ function recalcContractValue(){
   const tot=document.getElementById('f-work-total');
   if(tot)tot.textContent=total.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
   const cv=document.getElementById('f-cv');
-  if(cv)cv.value=total.toFixed(2);
+  if(cv){
+    cv.dataset.raw=total;
+    cv.value=total.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
 }
 
 function openProjectModal(){
@@ -1053,7 +1056,7 @@ async function saveProject(){
     const rate=parseFloat(document.getElementById('wi-rate-'+s.id)?.value)||0;
     if(qty>0||rate>0) workItems[s.id]={qty,rate};
   }));
-  const p={code:document.getElementById('f-code').value.trim(),name:document.getElementById('f-name').value.trim(),contractor:document.getElementById('f-contractor').value.trim(),workType:document.getElementById('f-type').value.trim(),contractValue:parseFloat(document.getElementById('f-cv').value)||0,vatRate:parseFloat(document.getElementById('f-vat').value)||7,workItems};
+  const p={code:document.getElementById('f-code').value.trim(),name:document.getElementById('f-name').value.trim(),contractor:document.getElementById('f-contractor').value.trim(),workType:document.getElementById('f-type').value.trim(),contractValue:parseFloat(document.getElementById('f-cv').dataset?.raw||document.getElementById('f-cv').value.replace(/,/g,''))||0,vatRate:parseFloat(document.getElementById('f-vat').value)||7,workItems};
   const entry=allProjects.find(x=>x.id===pid);
   if(!entry)return;
   try{
