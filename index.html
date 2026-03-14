@@ -56,6 +56,8 @@ body{font-family:'Sarabun','Noto Sans Thai',Arial,sans-serif;background:#0f172a;
 .inp:focus{border-color:#F47920}
 .qty-inp{width:88px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.35);border-radius:4px;padding:3px 6px;font-size:11px;font-family:monospace;text-align:right;color:#86efac;outline:none}
 .qty-inp:focus{border-color:#22c55e}
+.qty-inp.over{background:rgba(220,38,38,0.15);border-color:#f87171;color:#fca5a5}
+.qty-inp.over:focus{border-color:#dc2626}
 .tbl-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:11px;min-width:920px}
 th{background:#1B3A6B;color:#fff;padding:7px;text-align:center;font-weight:700;font-size:10px;border-right:1px solid rgba(255,255,255,0.08);white-space:nowrap}
@@ -688,7 +690,10 @@ function renderForm(editNo){
         <td class="r">${s.qty>0?N(s.qty,0):'-'}</td><td class="c">${s.unit}</td>
         <td class="r">${s.rate>0?N(s.rate):'-'}</td>
         <td class="r">${s.qty>0&&s.rate>0?N(s.qty*s.rate):'-'}</td>
-        <td style="text-align:right;background:rgba(34,197,94,0.08)"><input class="qty-inp" type="number" min="0" step="any" value="${editInputs[s.id]||''}" placeholder="0" oninput="editInputs['${s.id}']=this.value;updateTotals()"></td>
+        ${s.qty===0
+          ? `<td style="text-align:center;background:rgba(255,255,255,0.02);color:#1e293b">—</td>`
+          : `<td style="text-align:right;background:rgba(34,197,94,0.08)"><input class="qty-inp" type="number" min="0" step="any" value="${editInputs[s.id]||''}" placeholder="0" oninput="validateQty(this,'${s.id}',${rq})"></td>`
+        }
         <td class="r" id="fv-${s.id}">${tv>0?N(tv):'-'}</td>
         <td class="r">${cq>0?N(cq,2):'-'}</td><td class="r">${s.qty>0&&cq>0?P(cq/s.qty):'-'}</td>
         <td class="r">${cv2>0?N(cv2):'-'}</td>
@@ -733,6 +738,21 @@ function renderForm(editNo){
     <button class="btn" onclick="setView('summary')">← ยกเลิก</button>
     <button class="btn btn-orange" onclick="savePeriod(${newNo},${isEdit})">💾 บันทึกงวดที่ ${newNo}</button>
   </div>`;
+}
+
+function validateQty(el, sid, maxQty){
+  const val = parseFloat(el.value)||0;
+  editInputs[sid] = el.value;
+  // maxQty <= 0 means no limit (qty=0 in WORK means unlimited)
+  if(maxQty > 0 && val > maxQty){
+    el.classList.add('over');
+    el.title = 'เกินปริมาณคงเหลือ! สูงสุด '+N(maxQty,2);
+    showToast('⚠️ '+el.closest('tr').querySelector('td').textContent.trim()+' เกินคงเหลือ (สูงสุด '+N(maxQty,2)+')', 'er');
+  } else {
+    el.classList.remove('over');
+    el.title = '';
+  }
+  updateTotals();
 }
 
 function updateTotals(){
@@ -809,6 +829,13 @@ function renderDetail(no){
 function startEdit(no){const p=periods.find(x=>x.no===no);if(!p)return;editInputs={...p.inputs};editDate=p.date||'';setView('edit',no)}
 
 async function savePeriod(no,isEdit){
+  // Check for over-limit inputs
+  const overEls = document.querySelectorAll('.qty-inp.over');
+  if(overEls.length>0){
+    showToast('⚠️ กรุณาแก้ไขปริมาณที่เกินคงเหลือก่อนบันทึก','er');
+    overEls[0].focus();
+    return;
+  }
   const d=document.getElementById('form-date');
   const rec={no,date:d?d.value:editDate,inputs:{...editInputs}};
   const entry=allProjects.find(p=>p.id===pid);
