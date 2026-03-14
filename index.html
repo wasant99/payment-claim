@@ -78,7 +78,7 @@ tr.sum-row{cursor:pointer}tr.sum-row:hover td{background:rgba(27,58,107,0.4)}
 .meta-lbl{font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px}
 .meta-val{font-size:13px;font-weight:600;color:#e2e8f0}
 .modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
-.modal{background:#1e2d4a;border-radius:14px;padding:24px;width:480px;max-width:100%;border:1px solid rgba(255,255,255,0.1);box-shadow:0 20px 60px rgba(0,0,0,0.5);max-height:90vh;overflow-y:auto}
+.modal{background:#1e2d4a;border-radius:14px;padding:24px;width:720px;max-width:100%;border:1px solid rgba(255,255,255,0.1);box-shadow:0 20px 60px rgba(0,0,0,0.5);max-height:90vh;overflow-y:auto}
 .modal-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:16px}
 .fg{margin-bottom:12px}
 .fg label{font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
@@ -164,6 +164,25 @@ tr.sum-row{cursor:pointer}tr.sum-row:hover td{background:rgba(27,58,107,0.4)}
     <div class="empty"><div class="empty-icon">⏳</div><div>กำลังโหลด...</div></div>
   </div>
 </div>
+</div>
+
+<!-- Connect Sheet Modal -->
+<div id="modal-connect" style="display:none" class="modal-bg" onclick="if(event.target===this)closeModal('modal-connect')">
+  <div class="modal">
+    <div class="modal-title">🔗 เชื่อมต่อ Google Sheet ที่มีอยู่</div>
+    <div style="background:#0f2549;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:12px;color:#64748b;line-height:1.7">
+      ใช้สำหรับเชื่อมต่อ Sheet ของโครงการที่คนอื่นสร้างไว้แล้ว<br>
+      1. ให้เจ้าของโครงการเปิด Google Sheet → คัดลอก ID จาก URL<br>
+      <code style="background:#1B3A6B;padding:2px 6px;border-radius:4px;color:#86efac;font-size:11px">docs.google.com/spreadsheets/d/<b style="color:#F47920">ID ตรงนี้</b>/edit</code><br>
+      2. แชร์ Sheet ให้อ่าน/เขียนได้ก่อน แล้วค่อยกรอก ID
+    </div>
+    <div class="fg"><label>Spreadsheet ID</label><input class="inp" id="conn-id" placeholder="เช่น 1Gk7cmCXYDV91ht6In2WKz2-xIbdQjRZX-i8JjKI9fPo"></div>
+    <div class="fg"><label>ชื่อที่แสดง (ตั้งเองได้)</label><input class="inp" id="conn-name" placeholder="เช่น โครงการ XYZ (ทีม A)"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-connect')">ยกเลิก</button>
+      <button class="btn btn-navy" onclick="connectSheet()">🔗 เชื่อมต่อ</button>
+    </div>
+  </div>
 </div>
 
 <!-- Modals -->
@@ -521,7 +540,10 @@ function renderHome(){
         ${p.code?'<div style="font-size:11px;color:#F47920;font-weight:700;margin-bottom:6px">🔖 '+p.code+'</div>':''}
         <div class="proj-card-meta"><span class="proj-card-badge">📋 ${p.periodCount||0} ครั้ง</span></div>
       </div>
-      <button onclick="deleteProjectConfirm('${p.id}','${(p.name||p.id).replace(/'/g,'')}')" style="position:absolute;top:10px;right:10px;background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.3);color:#f87171;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit">🗑 ลบ</button>
+      <div style="position:absolute;top:10px;right:10px;display:flex;gap:5px">
+        <button onclick="copySheetId('${p.spreadsheetId}')" style="background:rgba(27,58,107,0.5);border:1px solid rgba(27,58,107,0.8);color:#94a3b8;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit" title="คัดลอก Sheet ID เพื่อแชร์ทีม">📋 แชร์</button>
+        <button onclick="deleteProjectConfirm('${p.id}','${(p.name||p.id).replace(/'/g,'')}')" style="background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.3);color:#f87171;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit">🗑 ลบ</button>
+      </div>
     </div>`).join('');
   document.getElementById('nav-home').classList.add('active');
   document.getElementById('side-periods').innerHTML='';
@@ -534,6 +556,11 @@ function renderHome(){
         <div style="font-weight:700;font-size:14px">เพิ่มโครงการใหม่</div>
         <div style="font-size:11px">สร้าง Google Sheet ใหม่อัตโนมัติ</div>
       </div>
+      <div class="proj-add-card" onclick="openConnectModal()">
+        <div style="font-size:32px">🔗</div>
+        <div style="font-weight:700;font-size:14px">เชื่อมต่อ Sheet ที่มีอยู่</div>
+        <div style="font-size:11px">สำหรับทีมงานที่ได้รับ Sheet ID</div>
+      </div>
     </div>`;
 }
 
@@ -542,6 +569,57 @@ function openNewProjectModal(){
   ['np-code','np-name','np-contractor','np-type','np-cv'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('np-vat').value='7';
   document.getElementById('modal-new-proj').style.display='flex';
+}
+
+function openConnectModal(){
+  document.getElementById('conn-id').value='';
+  document.getElementById('conn-name').value='';
+  document.getElementById('modal-connect').style.display='flex';
+  setTimeout(()=>document.getElementById('conn-id').focus(),100);
+}
+
+async function connectSheet(){
+  const sid = document.getElementById('conn-id').value.trim();
+  const cname = document.getElementById('conn-name').value.trim();
+  if(!sid){showToast('กรุณาใส่ Spreadsheet ID','er');return;}
+  setSyncing(true);
+  try{
+    // Try to read project data from the sheet
+    const rows = await sheetsGet(sid, 'data!A1:A2');
+    let projName = cname;
+    if(!projName){
+      // Try to get name from sheet data
+      try{
+        const p = rows[1]?.[0] ? JSON.parse(rows[1][0]) : {};
+        projName = p.name || 'โครงการที่เชื่อมต่อ';
+      }catch(e){ projName = 'โครงการที่เชื่อมต่อ'; }
+    }
+    // Check not already added
+    if(allProjects.find(p=>p.spreadsheetId===sid)){
+      showToast('เชื่อมต่อ Sheet นี้ไปแล้ว','er'); return;
+    }
+    const entry = {id:'p_'+Date.now(), name:projName, spreadsheetId:sid, periodCount:0};
+    allProjects.push(entry);
+    saveIndexLocal(allProjects);
+    closeModal('modal-connect');
+    showToast('เชื่อมต่อสำเร็จ: '+projName+' ✓');
+    pid = entry.id;
+    await loadProject();
+  }catch(e){
+    showToast('เชื่อมต่อไม่สำเร็จ: '+e.message+' (ตรวจสอบว่า Sheet ถูก Share แล้ว)','er');
+  }finally{setSyncing(false);}
+}
+
+function copySheetId(spreadsheetId){
+  navigator.clipboard.writeText(spreadsheetId).then(()=>{
+    showToast('คัดลอก Sheet ID แล้ว — ส่งให้ทีมงานได้เลย ✓');
+  }).catch(()=>{
+    // fallback
+    const el=document.createElement('textarea');
+    el.value=spreadsheetId;document.body.appendChild(el);
+    el.select();document.execCommand('copy');document.body.removeChild(el);
+    showToast('คัดลอก Sheet ID แล้ว ✓');
+  });
 }
 
 async function createProject(){
@@ -796,13 +874,20 @@ function renderDetail(no){
   WORK.forEach(g=>{
     rows+=`<tr class="grp-row"><td colspan="13">${g.g}. ${g.label}</td></tr>`;
     g.items.forEach(s=>{
-      const tq=parseFloat(p.inputs?.[s.id]||0),tv=tq*getRate(s.id),cq=cum[s.id]||0,cv2=cq*getRate(s.id),rq=getQty(s.id)>0?getQty(s.id)-cq:0;
+      const tq=parseFloat(p.inputs?.[s.id]||0),tv=tq*getRate(s.id);
+      const cumPrev=calcCum(periods,no-1); // สะสมถึงครั้งที่แล้ว
+      const pq=cumPrev[s.id]||0,pv=pq*getRate(s.id);
+      const cq=cum[s.id]||0,cv2=cq*getRate(s.id),rq=getQty(s.id)>0?getQty(s.id)-cq:0;
       rows+=`<tr>
         <td class="l" style="padding-left:14px">${s.desc}</td>
         <td class="r">${getQty(s.id)>0?N(getQty(s.id),0):'-'}</td><td class="c">${s.unit}</td>
-        <td class="r">${getRate(s.id)>0?N(getRate(s.id)):'-'}</td><td class="r">${getQty(s.id)>0&&getRate(s.id)>0?N(getQty(s.id)*getRate(s.id)):'-'}</td>
+        <td class="r">${getRate(s.id)>0?N(getRate(s.id)):'-'}</td>
+        <td class="r">${getQty(s.id)>0&&getRate(s.id)>0?N(getQty(s.id)*getRate(s.id)):'-'}</td>
         <td class="r" style="background:rgba(34,197,94,0.1);color:#86efac">${tq>0?N(tq,2):'-'}</td>
         <td class="r" style="background:rgba(34,197,94,0.1);color:#86efac">${tv>0?N(tv):'-'}</td>
+        <td class="r" style="background:rgba(30,63,122,0.3)">${pq>0?N(pq,2):'-'}</td>
+        <td class="r" style="background:rgba(30,63,122,0.3)">${getQty(s.id)>0&&pq>0?P(pq/getQty(s.id)):'-'}</td>
+        <td class="r" style="background:rgba(30,63,122,0.3)">${pv>0?N(pv):'-'}</td>
         <td class="r">${cq>0?N(cq,2):'-'}</td><td class="r">${getQty(s.id)>0&&cq>0?P(cq/getQty(s.id)):'-'}</td>
         <td class="r">${cv2>0?N(cv2):'-'}</td>
         <td class="r">${rq>0?N(rq,2):'-'}</td><td class="r">${getQty(s.id)>0&&rq>0?P(rq/getQty(s.id)):'-'}</td>
@@ -834,15 +919,27 @@ function renderDetail(no){
     </div>
     <div class="tbl-wrap"><table>
       <thead>
-        <tr><th rowspan="2" style="text-align:left;min-width:185px">รายการ</th><th rowspan="2">ปริมาณรวม</th><th rowspan="2">หน่วย</th><th rowspan="2">ราคา/หน่วย</th><th rowspan="2">มูลค่ารวม</th>
-          <th colspan="2" class="th-or">งวดนี้</th><th colspan="3" class="th-bl">สะสม</th><th colspan="3" class="th-gr">คงเหลือ</th></tr>
-        <tr><th class="th-or">ปริมาณ</th><th class="th-or">มูลค่า (บาท)</th><th class="th-bl">ปริมาณ</th><th class="th-bl">%</th><th class="th-bl">มูลค่า</th><th class="th-gr">ปริมาณ</th><th class="th-gr">%</th><th class="th-gr">มูลค่า</th></tr>
+        <tr>
+          <th rowspan="2" style="text-align:left;min-width:185px">รายการ</th>
+          <th rowspan="2">ปริมาณรวม</th><th rowspan="2">หน่วย</th>
+          <th rowspan="2">ราคา/หน่วย</th><th rowspan="2">มูลค่ารวม</th>
+          <th colspan="2" class="th-or">ครั้งนี้</th>
+          <th colspan="3" style="background:#1e3f7a;color:#fff;text-align:center">สะสมถึงครั้งที่แล้ว</th>
+          <th colspan="3" class="th-bl">สะสมทั้งหมด</th>
+          <th colspan="3" class="th-gr">คงเหลือ</th>
+        </tr>
+        <tr>
+          <th class="th-or">ปริมาณ</th><th class="th-or">มูลค่า (บาท)</th>
+          <th style="background:#1e3f7a;color:#fff">ปริมาณ</th><th style="background:#1e3f7a;color:#fff">%</th><th style="background:#1e3f7a;color:#fff">มูลค่า</th>
+          <th class="th-bl">ปริมาณ</th><th class="th-bl">%</th><th class="th-bl">มูลค่า</th>
+          <th class="th-gr">ปริมาณ</th><th class="th-gr">%</th><th class="th-gr">มูลค่า</th>
+        </tr>
       </thead>
       <tbody>${rows}</tbody>
       <tfoot>
-        <tr class="tot-row"><td colspan="5" class="l">มูลค่างาน (ไม่รวม VAT)</td><td colspan="2" class="r">${N(t.base)}</td><td colspan="6"></td></tr>
-        <tr class="vat-row"><td colspan="5" class="l">VAT ${proj.vatRate||7}%</td><td colspan="2" class="r">${N(t.vat)}</td><td colspan="6"></td></tr>
-        <tr class="grd-row"><td colspan="5" class="l">รวมทั้งหมด (รวม VAT)</td><td colspan="2" class="r">${N(t.grand)}</td><td colspan="6"></td></tr>
+        <tr class="tot-row"><td colspan="5" class="l">มูลค่างาน (ไม่รวม VAT)</td><td colspan="2" class="r">${N(t.base)}</td><td colspan="9"></td></tr>
+        <tr class="vat-row"><td colspan="5" class="l">VAT ${proj.vatRate||7}%</td><td colspan="2" class="r">${N(t.vat)}</td><td colspan="9"></td></tr>
+        <tr class="grd-row"><td colspan="5" class="l">รวมทั้งหมด (รวม VAT)</td><td colspan="2" class="r">${N(t.grand)}</td><td colspan="9"></td></tr>
       </tfoot>
     </table></div>
   </div>
@@ -912,8 +1009,8 @@ function openProjectModal(){
       const wi=workItems[s.id]||{};
       rows+=`<tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
         <td style="padding:4px 8px;color:#cbd5e1">${s.desc}</td>
-        <td style="padding:4px 6px;text-align:center"><input class="qty-inp" type="number" min="0" step="any" style="width:72px" value="${wi.qty||''}" placeholder="0" id="wi-qty-${s.id}"></td>
-        <td style="padding:4px 6px;text-align:center"><input class="qty-inp" type="number" min="0" step="any" style="width:88px" value="${wi.rate||''}" placeholder="0.00" id="wi-rate-${s.id}"></td>
+        <td style="padding:4px 6px;text-align:center"><input class="qty-inp" type="number" min="0" step="any" style="width:100px" value="${wi.qty||''}" placeholder="0" id="wi-qty-${s.id}"></td>
+        <td style="padding:4px 6px;text-align:center"><input class="qty-inp" type="number" min="0" step="any" style="width:120px" value="${wi.rate||''}" placeholder="0.00" id="wi-rate-${s.id}"></td>
       </tr>`;
     });
   });
@@ -982,9 +1079,92 @@ function exportPDFSummary(){
 
 function printPeriod(no){
   const p=periods.find(x=>x.no===no);if(!p)return;
-  const t=calcTot(p.inputs,proj.vatRate),cum=calcCum(periods,no);
-  let rows='';WORK.forEach(g=>{rows+=`<tr><td colspan="7" style="background:#1B3A6B;color:white;font-weight:700;padding:6px 10px">${g.g}. ${g.label}</td></tr>`;g.items.forEach(s=>{const tq=parseFloat(p.inputs?.[s.id]||0),tv=tq*s.rate,cq=cum[s.id]||0;rows+=`<tr><td style="padding-left:14px">${s.desc}</td><td class="r">${s.qty>0?N(s.qty,0):'-'}</td><td style="text-align:center">${s.unit}</td><td class="r">${s.rate>0?N(s.rate):'-'}</td><td class="r" style="background:#fffde7">${tq>0?N(tq,2):'-'}</td><td class="r" style="background:#fffde7">${tv>0?N(tv):'-'}</td><td class="r">${cq>0?N(cq,2):'-'}</td></tr>`})});
-  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ครั้งที่ ${no}</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">${buildPrintCSS()}</head><body><h2>ใบแสดงรายละเอียด — ครั้งที่ ${no}</h2><h3>${proj.name} | ${proj.contractor}</h3><table><thead><tr><th>รายการ</th><th>ปริมาณรวม</th><th>หน่วย</th><th>ราคา/หน่วย</th><th>ปริมาณงวดนี้</th><th>มูลค่างวดนี้</th><th>สะสม</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="4">มูลค่างาน(ไม่รวมVAT)</td><td colspan="3" class="r">${N(t.base)} บาท</td></tr><tr><td colspan="4">VAT ${proj.vatRate||7}%</td><td colspan="3" class="r">${N(t.vat)} บาท</td></tr><tr><td colspan="4">รวม(รวมVAT)</td><td colspan="3" class="r">${N(t.grand)} บาท</td></tr></tfoot></table><button onclick="window.print()">Print</button></body></html>`;
+  const t=calcTot(p.inputs,proj.vatRate);
+  const cum=calcCum(periods,no);
+  const cumPrev=calcCum(periods,no-1);
+  let rows='';
+  WORK.forEach(g=>{
+    rows+=`<tr><td colspan="16" style="background:#1B3A6B;color:white;font-weight:700;padding:6px 10px">${g.g}. ${g.label}</td></tr>`;
+    g.items.forEach(s=>{
+      const tq=parseFloat(p.inputs?.[s.id]||0),tv=tq*getRate(s.id);
+      const pq=cumPrev[s.id]||0,pv=pq*getRate(s.id);
+      const cq=cum[s.id]||0,cv2=cq*getRate(s.id);
+      const rq=getQty(s.id)>0?getQty(s.id)-cq:0;
+      rows+=`<tr>
+        <td style="padding-left:10px;font-size:10px">${s.desc}</td>
+        <td class="r">${getQty(s.id)>0?N(getQty(s.id),0):'-'}</td>
+        <td style="text-align:center">${s.unit}</td>
+        <td class="r">${getRate(s.id)>0?N(getRate(s.id)):'-'}</td>
+        <td class="r">${getQty(s.id)>0&&getRate(s.id)>0?N(getQty(s.id)*getRate(s.id)):'-'}</td>
+        <td class="r" style="background:#f0fff4">${tq>0?N(tq,2):'-'}</td>
+        <td class="r" style="background:#f0fff4">${tv>0?N(tv):'-'}</td>
+        <td class="r" style="background:#e8f0fe">${pq>0?N(pq,2):'-'}</td>
+        <td class="r" style="background:#e8f0fe">${getQty(s.id)>0&&pq>0?P(pq/getQty(s.id)):'-'}</td>
+        <td class="r" style="background:#e8f0fe">${pv>0?N(pv):'-'}</td>
+        <td class="r">${cq>0?N(cq,2):'-'}</td>
+        <td class="r">${getQty(s.id)>0&&cq>0?P(cq/getQty(s.id)):'-'}</td>
+        <td class="r">${cv2>0?N(cv2):'-'}</td>
+        <td class="r">${rq>0?N(rq,2):'-'}</td>
+        <td class="r">${getQty(s.id)>0&&rq>0?P(rq/getQty(s.id)):'-'}</td>
+        <td class="r">${rq>0&&getRate(s.id)>0?N(rq*getRate(s.id)):'-'}</td>
+      </tr>`;
+    });
+  });
+  const css=`<style>
+    *{box-sizing:border-box}
+    body{font-family:'Sarabun','Noto Sans Thai',Arial,sans-serif;margin:10px;font-size:9px;color:#111}
+    h2{font-size:13px;text-align:center;margin-bottom:3px;color:#1B3A6B}
+    h3{font-size:10px;text-align:center;color:#555;margin-bottom:4px}
+    .info{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;padding:8px;background:#f0f4f8;border-radius:4px;font-size:9px}
+    table{width:100%;border-collapse:collapse;font-size:8.5px;margin-bottom:10px}
+    th{background:#1B3A6B;color:white;padding:4px 5px;text-align:center;font-weight:700;font-size:8px;border:1px solid #ccc}
+    th.or{background:#b85a14}th.bl{background:#1e3f7a}th.gr{background:#2d3748}
+    td{padding:3px 5px;border-bottom:1px solid #e2e8f0;border-right:1px solid #f0f0f0}
+    td.r{text-align:right;font-family:monospace}
+    .grp td{background:#1B3A6B;color:white;font-weight:700;padding:4px 8px}
+    .tot td{background:#1B3A6B;color:white;font-weight:700;font-family:monospace;padding:5px}
+    .vat td{background:#F47920;color:white;font-weight:700;font-family:monospace;padding:5px}
+    .grd td{background:#0f2549;color:#F47920;font-weight:800;font-family:monospace;font-size:10px;padding:6px}
+    button{margin-top:10px;padding:8px 20px;background:#1B3A6B;color:white;border:none;border-radius:5px;cursor:pointer;font-size:12px}
+    @media print{button{display:none}body{margin:5px}}
+  </style>`;
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ครั้งที่ ${no}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+    ${css}</head><body>
+    <h2>ใบแสดงรายละเอียดการเบิกเงิน — ครั้งที่ ${no}</h2>
+    <h3>${proj.name} | ${proj.contractor}</h3>
+    <div class="info">
+      <div><b>รหัส:</b> ${proj.code||'-'}</div>
+      <div><b>ประเภทงาน:</b> ${proj.workType||'-'}</div>
+      <div><b>วันที่:</b> ${p.date||'-'}</div>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th rowspan="2" style="text-align:left;min-width:120px">รายการ</th>
+          <th rowspan="2">ปริมาณรวม</th><th rowspan="2">หน่วย</th>
+          <th rowspan="2">ราคา/หน่วย</th><th rowspan="2">มูลค่ารวม</th>
+          <th colspan="2" class="or">ครั้งนี้</th>
+          <th colspan="3" class="bl">สะสมถึงครั้งที่แล้ว</th>
+          <th colspan="3">สะสมทั้งหมด</th>
+          <th colspan="3" class="gr">คงเหลือ</th>
+        </tr>
+        <tr>
+          <th class="or">ปริมาณ</th><th class="or">มูลค่า</th>
+          <th class="bl">ปริมาณ</th><th class="bl">%</th><th class="bl">มูลค่า</th>
+          <th>ปริมาณ</th><th>%</th><th>มูลค่า</th>
+          <th class="gr">ปริมาณ</th><th class="gr">%</th><th class="gr">มูลค่า</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+      <tfoot>
+        <tr class="tot"><td colspan="5">มูลค่างาน (ไม่รวม VAT)</td><td colspan="2" class="r">${N(t.base)} บาท</td><td colspan="9"></td></tr>
+        <tr class="vat"><td colspan="5">VAT ${proj.vatRate||7}%</td><td colspan="2" class="r">${N(t.vat)} บาท</td><td colspan="9"></td></tr>
+        <tr class="grd"><td colspan="5">รวมทั้งหมด (รวม VAT)</td><td colspan="2" class="r">${N(t.grand)} บาท</td><td colspan="9"></td></tr>
+      </tfoot>
+    </table>
+    <button onclick="window.print()">🖨 พิมพ์ / บันทึก PDF</button>
+  </body></html>`;
   const b=new Blob([html],{type:'text/html'});
   window.open(URL.createObjectURL(b),'_blank');
 }
