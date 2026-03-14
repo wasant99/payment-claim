@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -120,17 +119,15 @@ tr.sum-row{cursor:pointer}tr.sum-row:hover td{background:rgba(27,58,107,0.4)}
 <div id="app" style="display:none">
 <div class="topbar">
   <div class="brand">
-    <div style="display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#F47920,#d4671b);border-radius:10px;padding:4px 10px 4px 6px">
-      <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
-        <rect width="36" height="36" rx="8" fill="none"/>
-        <text x="18" y="14" text-anchor="middle" fill="#fff" font-family="Arial" font-weight="900" font-size="11">THC</text>
-        <rect x="6" y="17" width="24" height="2.5" rx="1" fill="#fff" opacity="0.9"/>
-        <polygon points="18,21 8,28 28,28" fill="#fff" opacity="0.85"/>
-        <rect x="14" y="23" width="4" height="5" fill="#F47920"/>
-      </svg>
+    <div style="display:flex;align-items:center;gap:10px;background:rgba(0,0,0,0.2);border-radius:12px;padding:6px 14px 6px 6px;border:1px solid rgba(255,255,255,0.1)">
+      <div style="width:40px;height:40px;background:#F47920;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+        <span style="color:#fff;font-family:Arial;font-weight:900;font-size:13px;line-height:1">THC</span>
+        <div style="width:26px;height:2px;background:#fff;border-radius:1px;margin:3px 0 2px"></div>
+        <svg width="22" height="10" viewBox="0 0 22 10"><polygon points="11,0 0,10 22,10" fill="#fff" opacity="0.9"/><rect x="8" y="4" width="6" height="6" fill="#F47920"/></svg>
+      </div>
       <div>
-        <div style="font-size:11px;font-weight:800;color:#fff;letter-spacing:0.3px">THAI HAZEKAWA</div>
-        <div style="font-size:9px;color:rgba(255,255,255,0.75);letter-spacing:0.2px">Construction Co.,Ltd</div>
+        <div style="font-size:12px;font-weight:800;color:#fff;white-space:nowrap">บริษัท ไทย ฮาเซคาวา คอนสตรัคชั่น จำกัด</div>
+        <div style="font-size:10px;color:rgba(255,255,255,0.55)">Thai Hazekawa Construction Co.,Ltd</div>
       </div>
     </div>
     <div style="width:1px;height:28px;background:rgba(255,255,255,0.15);margin:0 4px"></div>
@@ -498,7 +495,7 @@ function renderHome(){
     <div class="proj-card" style="position:relative">
       <div onclick="openProject('${p.id}')" style="cursor:pointer">
         <div class="proj-card-name">${p.name||p.id}</div>
-        ${p.code?'<div style="font-size:11px;color:#F47920;font-weight:700;margin-bottom:6px">🔖 รหัส: '+p.code+'</div>':''}
+        ${p.code?'<div style="font-size:11px;color:#F47920;font-weight:700;margin-bottom:6px">🔖 '+p.code+'</div>':''}
         <div class="proj-card-meta"><span class="proj-card-badge">📋 ${p.periodCount||0} งวด</span></div>
       </div>
       <button onclick="deleteProjectConfirm('${p.id}','${(p.name||p.id).replace(/'/g,'')}')" style="position:absolute;top:10px;right:10px;background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.3);color:#f87171;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit">🗑 ลบ</button>
