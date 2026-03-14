@@ -1,0 +1,870 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ระบบใบส่งงาน</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Sarabun','Noto Sans Thai',Arial,sans-serif;background:#0f172a;color:#e2e8f0;font-size:13px;min-height:100vh}
+:root{--navy:#1B3A6B;--orange:#F47920;--border:rgba(255,255,255,0.08)}
+.topbar{background:linear-gradient(135deg,#1B3A6B,#0f2549);border-bottom:1px solid rgba(244,121,32,0.3);padding:0 20px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.brand{display:flex;align-items:center;gap:10px}
+.brand-dot{width:32px;height:32px;background:#F47920;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:15px;font-weight:700;flex-shrink:0}
+.brand-name{font-size:14px;font-weight:700;color:#fff}
+.brand-sub{font-size:11px;color:rgba(255,255,255,0.5)}
+.layout{display:flex;min-height:calc(100vh - 52px)}
+.sidebar{width:210px;background:#0f2549;border-right:1px solid var(--border);padding:12px 0;flex-shrink:0;display:flex;flex-direction:column;overflow-y:auto}
+.side-lbl{font-size:10px;font-weight:700;color:rgba(255,255,255,0.3);letter-spacing:1.2px;text-transform:uppercase;padding:8px 16px 4px}
+.side-item{display:flex;align-items:center;gap:8px;padding:9px 16px;cursor:pointer;font-size:13px;color:rgba(255,255,255,0.65);border-left:3px solid transparent;transition:all 0.12s;user-select:none}
+.side-item:hover{background:rgba(255,255,255,0.05);color:#fff}
+.side-item.active{border-left-color:#F47920;background:rgba(244,121,32,0.12);color:#F47920;font-weight:700}
+.side-divider{border:none;border-top:1px solid var(--border);margin:8px 0}
+.side-add{margin:10px 14px;background:#F47920;color:#fff;border:none;padding:10px;border-radius:8px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:700;width:calc(100% - 28px);transition:background 0.15s}
+.side-add:hover{background:#d4671b}
+.main{flex:1;overflow:auto;padding:20px;background:#0f172a}
+.home-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:16px;margin-top:8px}
+.proj-card{background:#1e2d4a;border:1px solid var(--border);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.15s;border-top:3px solid #1B3A6B}
+.proj-card:hover{border-top-color:#F47920;transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.3)}
+.proj-card-name{font-size:14px;font-weight:700;color:#fff;margin-bottom:6px}
+.proj-card-sub{font-size:11px;color:#64748b;margin-bottom:12px}
+.proj-card-meta{display:flex;gap:12px}
+.proj-card-badge{font-size:11px;background:#0f2549;padding:3px 10px;border-radius:20px;color:#94a3b8}
+.proj-add-card{background:transparent;border:2px dashed rgba(255,255,255,0.12);border-radius:12px;padding:20px;cursor:pointer;transition:all 0.15s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:110px;color:#475569}
+.proj-add-card:hover{border-color:#F47920;color:#F47920;background:rgba(244,121,32,0.05)}
+.card{background:#1e2d4a;border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:16px}
+.card-hd{background:linear-gradient(135deg,#1B3A6B,#0f2549);padding:12px 18px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #F47920}
+.card-hd-title{color:#fff;font-size:13px;font-weight:700}
+.badge{background:#F47920;color:#fff;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.kpi-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:#1e2d4a;border:1px solid var(--border);border-radius:10px;padding:14px 16px}
+.kpi-lbl{font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:0.6px}
+.kpi-val{font-size:18px;font-weight:700;margin-top:4px;font-family:monospace}
+.kpi-sub{font-size:11px;color:#64748b;margin-top:2px}
+.ph{background:#1e2d4a;border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.ph-title{font-size:17px;font-weight:700;color:#fff}
+.ph-sub{font-size:12px;color:#64748b;margin-top:2px}
+.btn{padding:7px 14px;border-radius:7px;border:1px solid rgba(255,255,255,0.15);background:transparent;cursor:pointer;font-size:12px;font-family:inherit;font-weight:600;color:#e2e8f0;transition:all 0.12s;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:rgba(255,255,255,0.08)}
+.btn-orange{background:#F47920;color:#fff;border-color:#F47920}.btn-orange:hover{background:#d4671b}
+.btn-navy{background:#1B3A6B;color:#fff;border-color:#1B3A6B}.btn-navy:hover{background:#152e56}
+.btn-danger{color:#f87171;border-color:rgba(220,38,38,0.4)}.btn-danger:hover{background:rgba(220,38,38,0.12)}
+.btn-sm{padding:4px 10px;font-size:11px}
+.btn-group{display:flex;gap:7px;flex-wrap:wrap}
+.inp{width:100%;background:#0f2549;border:1px solid rgba(255,255,255,0.12);border-radius:7px;padding:8px 11px;font-size:13px;font-family:inherit;color:#e2e8f0;outline:none;transition:border-color 0.12s}
+.inp:focus{border-color:#F47920}
+.qty-inp{width:88px;background:rgba(34,197,94,0.1);border:1px solid rgba(34,197,94,0.35);border-radius:4px;padding:3px 6px;font-size:11px;font-family:monospace;text-align:right;color:#86efac;outline:none}
+.qty-inp:focus{border-color:#22c55e}
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:11px;min-width:920px}
+th{background:#1B3A6B;color:#fff;padding:7px;text-align:center;font-weight:700;font-size:10px;border-right:1px solid rgba(255,255,255,0.08);white-space:nowrap}
+th.th-or{background:#b85a14}th.th-bl{background:#1e3f7a}th.th-gr{background:#2d3748}
+td{padding:5px 7px;border-bottom:1px solid rgba(255,255,255,0.05);border-right:1px solid rgba(255,255,255,0.04);color:#cbd5e1;vertical-align:middle}
+td.r{text-align:right;font-family:monospace;white-space:nowrap;font-size:11px}
+td.c{text-align:center}td.l{text-align:left}
+tr.grp-row td{background:#1B3A6B;color:#fff;font-weight:700;font-size:12px;padding:7px 12px}
+tr.tot-row td{background:#1B3A6B;color:#fff;font-weight:700;font-family:monospace;padding:8px 10px}
+tr.vat-row td{background:#F47920;color:#fff;font-weight:700;font-family:monospace;padding:8px 10px}
+tr.grd-row td{background:#0f2549;color:#F47920;font-weight:800;font-family:monospace;font-size:13px;padding:10px}
+tr.sum-row{cursor:pointer}tr.sum-row:hover td{background:rgba(27,58,107,0.4)}
+.prog-bg{height:8px;background:rgba(255,255,255,0.08);border-radius:99px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,#1B3A6B,#F47920);border-radius:99px;transition:width 0.6s}
+.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border)}
+.meta-cell{padding:11px 16px;border-right:1px solid var(--border)}
+.meta-cell:last-child{border-right:none}
+.meta-lbl{font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px}
+.meta-val{font-size:13px;font-weight:600;color:#e2e8f0}
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:100;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:#1e2d4a;border-radius:14px;padding:24px;width:480px;max-width:100%;border:1px solid rgba(255,255,255,0.1);box-shadow:0 20px 60px rgba(0,0,0,0.5);max-height:90vh;overflow-y:auto}
+.modal-title{font-size:15px;font-weight:700;color:#fff;margin-bottom:16px}
+.fg{margin-bottom:12px}
+.fg label{font-size:11px;color:#64748b;font-weight:700;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+.chart-wrap{display:flex;align-items:flex-end;gap:8px;height:130px;padding:0 6px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;cursor:pointer}
+.bar-fill{width:100%;background:#1B3A6B;border-radius:4px 4px 0 0;min-height:4px;transition:height 0.5s,background 0.15s}
+.bar-col:hover .bar-fill{background:#F47920}
+.bar-lbl{font-size:10px;color:#64748b;font-family:monospace}
+.empty{text-align:center;padding:52px 16px;color:#334155}
+.empty-icon{font-size:40px;margin-bottom:12px}
+.tbl-actions{padding:10px 16px;display:flex;gap:8px;justify-content:flex-end;border-top:1px solid var(--border)}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:#22c55e;display:inline-block;margin-right:5px}
+.sync-dot.syncing{background:#F47920;animation:pulse 1s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+.toast{position:fixed;bottom:20px;right:20px;padding:11px 20px;border-radius:9px;font-size:13px;font-weight:600;z-index:200;transition:opacity 0.35s;pointer-events:none;box-shadow:0 6px 24px rgba(0,0,0,0.4)}
+.toast.ok{background:#15803d;color:#fff}.toast.er{background:#dc2626;color:#fff}
+.login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:20px}
+.login-card{background:#1e2d4a;border:1px solid var(--border);border-radius:16px;padding:40px;text-align:center;max-width:400px;width:100%}
+@media(max-width:700px){.kpi-row{grid-template-columns:repeat(2,1fr)}.sidebar{width:170px}.meta-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- Login Screen -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <div style="font-size:48px;margin-bottom:16px">📋</div>
+    <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:8px">ระบบใบส่งงาน</div>
+    <div style="font-size:13px;color:#64748b;margin-bottom:28px">Payment Claim System<br>ข้อมูลเก็บใน Google Sheets ของคุณ</div>
+    <button class="btn btn-orange" style="width:100%;padding:12px;font-size:14px;justify-content:center" onclick="signIn()">
+      <svg width="18" height="18" viewBox="0 0 18 18" style="margin-right:8px"><path fill="#fff" d="M9 3.48c1.69 0 2.83.73 3.48 1.34l2.54-2.48C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.96l2.91 2.26C4.6 5.05 6.62 3.48 9 3.48z"/><path fill="#fff" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#fff" d="M3.88 10.78A5.54 5.54 0 0 1 3.58 9c0-.62.11-1.22.29-1.78L.96 4.96A9.008 9.008 0 0 0 0 9c0 1.45.35 2.82.96 4.04l2.92-2.26z"/><path fill="#fff" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.4-1.57-5.12-3.74L.97 13.04C2.45 15.98 5.48 18 9 18z"/></svg>
+      เข้าสู่ระบบด้วย Google
+    </button>
+    <div style="font-size:11px;color:#334155;margin-top:16px">ระบบจะขอสิทธิ์อ่าน/เขียน Google Sheets เท่านั้น</div>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app" style="display:none">
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-dot">S</div>
+    <div>
+      <div class="brand-name" id="top-name">ระบบใบส่งงาน</div>
+      <div class="brand-sub" id="top-sub">Payment Claim System</div>
+    </div>
+  </div>
+  <div class="btn-group">
+    <span style="font-size:11px;color:#64748b;display:flex;align-items:center">
+      <span class="sync-dot" id="sync-dot"></span><span id="sync-status">พร้อมใช้งาน</span>
+    </span>
+    <span style="font-size:11px;color:#64748b" id="user-email"></span>
+    <button class="btn btn-sm" id="btn-settings" onclick="openProjectModal()" style="display:none">⚙ ตั้งค่า</button>
+    <button class="btn btn-sm" id="btn-home" onclick="goHome()" style="display:none">🏠 เลือกโครงการ</button>
+    <button class="btn btn-orange btn-sm" id="btn-add-period" onclick="goNew()" style="display:none">+ เพิ่มงวดใหม่</button>
+    <button class="btn btn-sm btn-danger" onclick="signOut()">ออกจากระบบ</button>
+  </div>
+</div>
+
+<div class="layout">
+  <div class="sidebar" id="sidebar">
+    <div class="side-lbl">โครงการ</div>
+    <div class="side-item active" id="nav-home" onclick="goHome()">🏠 เลือกโครงการ</div>
+    <hr class="side-divider">
+    <div class="side-lbl" id="side-proj-lbl" style="display:none">งวดที่บันทึกแล้ว</div>
+    <div id="side-periods"></div>
+    <div style="flex:1"></div>
+    <button class="side-add" id="side-new-btn" onclick="goNew()" style="display:none">+ เพิ่มงวดใหม่</button>
+  </div>
+  <div class="main" id="main">
+    <div class="empty"><div class="empty-icon">⏳</div><div>กำลังโหลด...</div></div>
+  </div>
+</div>
+</div>
+
+<!-- Modals -->
+<div id="modal-new-proj" style="display:none" class="modal-bg" onclick="if(event.target===this)closeModal('modal-new-proj')">
+  <div class="modal">
+    <div class="modal-title">➕ เพิ่มโครงการใหม่</div>
+    <div class="fg"><label>ชื่อโครงการ</label><input class="inp" id="np-name" placeholder="เช่น โครงการ อภิทาวน์ ฉะเชิงเทรา"></div>
+    <div class="fg"><label>ชื่อผู้รับเหมา</label><input class="inp" id="np-contractor"></div>
+    <div class="fg"><label>ประเภทงาน</label><input class="inp" id="np-type"></div>
+    <div class="fg"><label>มูลค่าสัญญา (ไม่รวม VAT) บาท</label><input class="inp" id="np-cv" type="number" step="0.01"></div>
+    <div class="fg"><label>อัตรา VAT (%)</label><input class="inp" id="np-vat" type="number" value="7" step="0.1"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-new-proj')">ยกเลิก</button>
+      <button class="btn btn-orange" onclick="createProject()">➕ สร้างโครงการ</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-project" style="display:none" class="modal-bg" onclick="if(event.target===this)closeModal('modal-project')">
+  <div class="modal">
+    <div class="modal-title">⚙ ตั้งค่าโครงการ</div>
+    <div class="fg"><label>ชื่อโครงการ</label><input class="inp" id="f-name"></div>
+    <div class="fg"><label>ชื่อผู้รับเหมา</label><input class="inp" id="f-contractor"></div>
+    <div class="fg"><label>ประเภทงาน</label><input class="inp" id="f-type"></div>
+    <div class="fg"><label>มูลค่าสัญญา (ไม่รวม VAT) บาท</label><input class="inp" id="f-cv" type="number" step="0.01"></div>
+    <div class="fg"><label>อัตรา VAT (%)</label><input class="inp" id="f-vat" type="number" step="0.1"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('modal-project')">ยกเลิก</button>
+      <button class="btn btn-navy" onclick="saveProject()">💾 บันทึก</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" style="opacity:0"></div>
+
+<script src="https://accounts.google.com/gsi/client" async></script>
+<script>
+// ─── CONFIG ───
+const CLIENT_ID = '589978999395-ddggp5inuhqqj2ilb2p65gh01ckvh1l1.apps.googleusercontent.com';
+const SCOPES = 'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file';
+const SHEET_TITLE = 'ระบบใบส่งงาน - Index';
+
+// ─── WORK ITEMS ───
+const WORK = [
+  {g:1,label:'งานท่อระบายน้ำคอนกรีตอัดแรง (คอร.)',items:[
+    {id:'1b',desc:'ท่อ คอร. 0.60m รวมทรายรองท้องท่อ',qty:0,unit:'m.',rate:930.69},
+    {id:'1c',desc:'ท่อ คอร. 0.80m รวมทรายรองท้องท่อ',qty:0,unit:'m.',rate:1348.45},
+    {id:'1d',desc:'ท่อ คอร. 1.00m รวมทรายรองท้องท่อ',qty:0,unit:'m.',rate:2141.90},
+    {id:'1e',desc:'ท่อ คอร. 1.20m รวมทรายรองท้องท่อ',qty:0,unit:'m.',rate:2141.90},
+  ]},
+  {g:2,label:'ท่อระบายน้ำคอนกรีตเสริมเหล็ก (คสล. มอก.ชั้น3)',items:[
+    {id:'2b',desc:'ท่อ คสล. 0.60m',qty:4693,unit:'m.',rate:1325.67},
+    {id:'2c',desc:'ท่อ คสล. 0.80m',qty:146,unit:'m.',rate:2260.25},
+    {id:'2d',desc:'ท่อ คสล. 1.00m',qty:225,unit:'m.',rate:3428.47},
+    {id:'2e',desc:'ท่อ คสล. 1.20m',qty:41,unit:'m.',rate:4830.34},
+  ]},
+  {g:3,label:'งานบ่อพักสำหรับท่อระบายน้ำ',items:[
+    {id:'3b',desc:'บ่อพักท่อ 0.60m',qty:461,unit:'set',rate:5360.48},
+    {id:'3c',desc:'บ่อพักท่อ 0.80m',qty:18,unit:'set',rate:7566.09},
+    {id:'3d',desc:'บ่อพักท่อ 1.00m',qty:21,unit:'set',rate:11528.70},
+    {id:'3e',desc:'บ่อพักท่อ 1.20m',qty:4,unit:'set',rate:15267.02},
+  ]},
+  {g:4,label:'งานต่อปากบ่อพักสำหรับท่อระบายน้ำ',items:[
+    {id:'4b',desc:'ต่อปากบ่อพักท่อ 0.60m',qty:461,unit:'set',rate:1340.12},
+    {id:'4c',desc:'ต่อปากบ่อพักท่อ 0.80m',qty:18,unit:'set',rate:1891.52},
+    {id:'4d',desc:'ต่อปากบ่อพักท่อ 1.00m',qty:21,unit:'set',rate:2882.18},
+    {id:'4e',desc:'ต่อปากบ่อพักท่อ 1.20m',qty:4,unit:'set',rate:3816.76},
+  ]},
+  {g:5,label:'งานบ่อตรวจคุณภาพน้ำและระบบบำบัดน้ำเสียรวม',items:[
+    {id:'5a',desc:'บ่อตรวจคุณภาพน้ำฯ งวดที่ 1',qty:1,unit:'งวด',rate:383092.99},
+    {id:'5b',desc:'บ่อตรวจคุณภาพน้ำฯ งวดที่ 2',qty:1,unit:'งวด',rate:383092.99},
+  ]},
+  {g:6,label:'งานชั้นรองพื้นทาง',items:[
+    {id:'6a',desc:'ปรับระดับดินพร้อมบดอัด',qty:20476,unit:'sq.m.',rate:23.36},
+    {id:'6c',desc:'พื้นหินคลุก หนา 0.20m',qty:20476,unit:'sq.m.',rate:177.57},
+  ]},
+  {g:7,label:'งานชั้นพื้นทาง',items:[
+    {id:'7a',desc:'พื้นถนน ค.ส.ล. หนา 0.15ม.',qty:18120,unit:'sq.m.',rate:489.02},
+  ]},
+  {g:8,label:'งานคันหินรวมงานตะแกรงเหล็กดักขยะ',items:[
+    {id:'8a',desc:'คันหินรวมตะแกรงเหล็กดักขยะ',qty:2630,unit:'m.',rate:336.45},
+  ]},
+  {g:9,label:'งานรางวีคอนกรีตเสริมเหล็ก ขนาด 0.45x0.15ม.',items:[
+    {id:'9a',desc:'รางวีคอนกรีตเสริมเหล็ก',qty:1753,unit:'m.',rate:327.10},
+  ]},
+];
+const ALL = WORK.flatMap(g=>g.items);
+
+// ─── STATE ───
+let accessToken='', userEmail='';
+let pid='', proj={}, periods=[], view='home', activePeriod=null, editInputs={}, editDate='', allProjects=[];
+// allProjects = [{name, sheetId, sheetName}]
+
+// ─── GOOGLE AUTH ───
+function signIn(){
+  const client = google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: SCOPES,
+    callback: async (resp) => {
+      if(resp.error){ showToast('Login ไม่สำเร็จ: '+resp.error,'er'); return; }
+      accessToken = resp.access_token;
+      // get user email
+      try{
+        const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}});
+        const u = await r.json();
+        userEmail = u.email||'';
+        document.getElementById('user-email').textContent = userEmail;
+      }catch(e){}
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('app').style.display='block';
+      await boot();
+    }
+  });
+  client.requestAccessToken();
+}
+
+function signOut(){
+  google.accounts.oauth2.revoke(accessToken, ()=>{});
+  accessToken='';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+}
+
+// ─── SHEETS API ───
+const BASE = 'https://sheets.googleapis.com/v4/spreadsheets';
+
+function sheetsHeaders(){ return {Authorization:'Bearer '+accessToken,'Content-Type':'application/json'}; }
+
+async function sheetsGet(spreadsheetId, range){
+  const r = await fetch(`${BASE}/${spreadsheetId}/values/${encodeURIComponent(range)}`,{headers:sheetsHeaders()});
+  if(!r.ok) throw new Error(await r.text());
+  const d = await r.json();
+  return d.values||[];
+}
+
+async function sheetsSet(spreadsheetId, range, values){
+  const r = await fetch(`${BASE}/${spreadsheetId}/values/${encodeURIComponent(range)}?valueInputOption=RAW`,{
+    method:'PUT', headers:sheetsHeaders(), body:JSON.stringify({range,values})
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function sheetsAppend(spreadsheetId, range, values){
+  const r = await fetch(`${BASE}/${spreadsheetId}/values/${encodeURIComponent(range)}:append?valueInputOption=RAW&insertDataOption=INSERT_ROWS`,{
+    method:'POST', headers:sheetsHeaders(), body:JSON.stringify({values})
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function createSpreadsheet(title){
+  const r = await fetch(BASE,{
+    method:'POST', headers:sheetsHeaders(),
+    body:JSON.stringify({properties:{title},sheets:[{properties:{title:'data'}}]})
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function addSheetTab(spreadsheetId, sheetTitle){
+  const r = await fetch(`${BASE}/${spreadsheetId}:batchUpdate`,{
+    method:'POST', headers:sheetsHeaders(),
+    body:JSON.stringify({requests:[{addSheet:{properties:{title:sheetTitle}}}]})
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function deleteSheetTab(spreadsheetId, sheetId){
+  const r = await fetch(`${BASE}/${spreadsheetId}:batchUpdate`,{
+    method:'POST', headers:sheetsHeaders(),
+    body:JSON.stringify({requests:[{deleteSheet:{sheetId}}]})
+  });
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function getSpreadsheetMeta(spreadsheetId){
+  const r = await fetch(`${BASE}/${spreadsheetId}`,{headers:sheetsHeaders()});
+  if(!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+// ─── INDEX SHEET ───
+// Index sheet stores: one spreadsheet per project
+// Row format: [projectName, spreadsheetId]
+// Stored in localStorage for speed, synced on load
+
+function getIndexKey(){ return 'pclaim_index_'+userEmail; }
+
+function loadIndexLocal(){
+  try{ return JSON.parse(localStorage.getItem(getIndexKey())||'[]'); }catch(e){ return []; }
+}
+
+function saveIndexLocal(arr){
+  localStorage.setItem(getIndexKey(), JSON.stringify(arr));
+}
+
+// ─── UTILS ───
+function N(v,d=2){return isNaN(v)||v===null?'-':Number(v).toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d})}
+function P(v){return(!isFinite(v)||isNaN(v))?'-':(v*100).toFixed(1)+'%'}
+function calcTot(inp,vr){let b=0;ALL.forEach(s=>{b+=(parseFloat(inp?.[s.id])||0)*s.rate});const vat=b*(vr||7)/100;return{base:b,vat,grand:b+vat}}
+function calcCum(ps,upTo){const c={};ps.filter(p=>p.no<=upTo).forEach(p=>ALL.forEach(s=>{c[s.id]=(c[s.id]||0)+(parseFloat(p.inputs?.[s.id])||0)}));return c}
+function calcCumExcl(excNo){const c={};periods.filter(p=>excNo==null?true:p.no!==excNo).forEach(p=>ALL.forEach(s=>{c[s.id]=(c[s.id]||0)+(parseFloat(p.inputs?.[s.id])||0)}));return c}
+function cvWithVat(){return (proj.contractValue||0)*(1+(proj.vatRate||7)/100)}
+function setSyncing(on){
+  const d=document.getElementById('sync-dot'),l=document.getElementById('sync-status');
+  if(d)d.className='sync-dot'+(on?' syncing':'');
+  if(l)l.textContent=on?'กำลังบันทึก...':'พร้อมใช้งาน';
+}
+let toastTimer;
+function showToast(msg,type='ok'){
+  const t=document.getElementById('toast');t.textContent=msg;t.className='toast '+type;t.style.opacity=1;
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.style.opacity=0},3500);
+}
+
+// ─── PROJECT DATA IN SHEETS ───
+// Each project = 1 Google Sheet file
+// Sheet "data": Row1=headers, Row2=project JSON, Row3+=period rows [no, date, inputsJSON]
+
+async function loadProjectFromSheet(spreadsheetId){
+  const rows = await sheetsGet(spreadsheetId, 'data!A1:C200');
+  let projData = {};
+  let periodList = [];
+  if(rows.length>=2 && rows[1][0]){
+    try{ projData = JSON.parse(rows[1][0]); }catch(e){}
+  }
+  for(let i=2;i<rows.length;i++){
+    const r=rows[i];
+    if(!r||!r[0]) continue;
+    try{
+      periodList.push({no:parseInt(r[0]),date:r[1]||'',inputs:JSON.parse(r[2]||'{}')});
+    }catch(e){}
+  }
+  periodList.sort((a,b)=>a.no-b.no);
+  return {projData, periodList};
+}
+
+async function initProjectSheet(spreadsheetId, projData){
+  // Set headers + project data in row 1-2
+  await sheetsSet(spreadsheetId, 'data!A1:C1', [['project_json','date','inputs']]);
+  await sheetsSet(spreadsheetId, 'data!A2:A2', [[JSON.stringify(projData)]]);
+}
+
+async function saveProjectToSheet(spreadsheetId, projData){
+  setSyncing(true);
+  try{
+    await sheetsSet(spreadsheetId, 'data!A2:A2', [[JSON.stringify(projData)]]);
+  }finally{setSyncing(false);}
+}
+
+async function addPeriodToSheet(spreadsheetId, period){
+  setSyncing(true);
+  try{
+    await sheetsAppend(spreadsheetId, 'data!A:C', [[period.no, period.date, JSON.stringify(period.inputs||{})]]);
+  }finally{setSyncing(false);}
+}
+
+async function rewritePeriodsToSheet(spreadsheetId, periodList){
+  setSyncing(true);
+  try{
+    // Clear from row 3 down
+    await fetch(`${BASE}/${spreadsheetId}/values/${encodeURIComponent('data!A3:C500')}:clear`,{method:'POST',headers:sheetsHeaders()});
+    if(periodList.length>0){
+      const values = periodList.map(p=>[p.no, p.date, JSON.stringify(p.inputs||{})]);
+      await sheetsSet(spreadsheetId, 'data!A3:C'+(periodList.length+2), values);
+    }
+  }finally{setSyncing(false);}
+}
+
+// ─── BOOT ───
+async function boot(){
+  allProjects = loadIndexLocal();
+  await loadHome();
+}
+
+async function loadHome(){
+  view='home'; pid='';
+  showSidebar(false);
+  renderHome();
+}
+
+async function loadProject(){
+  try{
+    const entry = allProjects.find(p=>p.id===pid);
+    if(!entry) throw new Error('ไม่พบโครงการ');
+    const {projData, periodList} = await loadProjectFromSheet(entry.spreadsheetId);
+    proj = projData;
+    periods = periodList;
+    periods.sort((a,b)=>a.no-b.no);
+  }catch(e){
+    showToast('โหลดโครงการไม่สำเร็จ: '+e.message,'er');
+    proj={};periods=[];
+  }
+  showSidebar(true);
+  setView('summary');
+}
+
+function showSidebar(inProject){
+  document.getElementById('btn-settings').style.display=inProject?'':'none';
+  document.getElementById('btn-home').style.display=inProject?'':'none';
+  document.getElementById('btn-add-period').style.display=inProject?'':'none';
+  document.getElementById('side-proj-lbl').style.display=inProject?'':'none';
+  document.getElementById('side-new-btn').style.display=inProject?'':'none';
+  document.getElementById('top-name').textContent=inProject?(proj.name||pid):'ระบบใบส่งงาน';
+  document.getElementById('top-sub').textContent=inProject?(proj.contractor||''):'Payment Claim System';
+}
+
+function goHome(){loadHome();}
+function openProject(id){pid=id;loadProject();}
+
+// ─── RENDER HOME ───
+function renderHome(){
+  const cards=allProjects.map(p=>`
+    <div class="proj-card" style="position:relative">
+      <div onclick="openProject('${p.id}')" style="cursor:pointer">
+        <div class="proj-card-name">${p.name||p.id}</div>
+        <div class="proj-card-sub" style="font-size:10px;color:#334155">${p.spreadsheetId}</div>
+        <div class="proj-card-meta"><span class="proj-card-badge">📋 ${p.periodCount||0} งวด</span></div>
+      </div>
+      <button onclick="deleteProjectConfirm('${p.id}','${(p.name||p.id).replace(/'/g,'')}')" style="position:absolute;top:10px;right:10px;background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.3);color:#f87171;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit">🗑 ลบ</button>
+    </div>`).join('');
+  document.getElementById('nav-home').classList.add('active');
+  document.getElementById('side-periods').innerHTML='';
+  document.getElementById('main').innerHTML=`
+    <div class="ph"><div><div class="ph-title">🏠 เลือกโครงการ</div><div class="ph-sub">แต่ละโครงการเก็บใน Google Sheets แยกกัน</div></div></div>
+    <div class="home-grid">
+      ${cards}
+      <div class="proj-add-card" onclick="openNewProjectModal()">
+        <div style="font-size:32px">➕</div>
+        <div style="font-weight:700;font-size:14px">เพิ่มโครงการใหม่</div>
+        <div style="font-size:11px">สร้าง Google Sheet ใหม่อัตโนมัติ</div>
+      </div>
+    </div>`;
+}
+
+// ─── NEW PROJECT ───
+function openNewProjectModal(){
+  ['np-name','np-contractor','np-type','np-cv'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('np-vat').value='7';
+  document.getElementById('modal-new-proj').style.display='flex';
+}
+
+async function createProject(){
+  const name=document.getElementById('np-name').value.trim();
+  if(!name){showToast('กรุณาใส่ชื่อโครงการ','er');return}
+  const projData={
+    name,
+    contractor:document.getElementById('np-contractor').value.trim(),
+    workType:document.getElementById('np-type').value.trim(),
+    contractValue:parseFloat(document.getElementById('np-cv').value)||0,
+    vatRate:parseFloat(document.getElementById('np-vat').value)||7,
+  };
+  setSyncing(true);
+  try{
+    // Create new Google Sheet
+    const sheet = await createSpreadsheet('ใบส่งงาน - '+name);
+    const spreadsheetId = sheet.spreadsheetId;
+    await initProjectSheet(spreadsheetId, projData);
+    const entry = {id:'p_'+Date.now(), name, spreadsheetId, periodCount:0};
+    allProjects.push(entry);
+    saveIndexLocal(allProjects);
+    closeModal('modal-new-proj');
+    showToast('สร้างโครงการ "'+name+'" แล้ว ✓ เปิดใน Google Drive ได้เลย');
+    pid=entry.id;
+    await loadProject();
+  }catch(e){
+    showToast('ไม่สามารถสร้างได้: '+e.message,'er');
+  }finally{setSyncing(false);}
+}
+
+async function deleteProjectConfirm(id, name){
+  if(!confirm('ต้องการลบโครงการ "'+name+'" ออกจากรายการใช่หรือไม่?\n(Google Sheet จะไม่ถูกลบ)'))return;
+  allProjects=allProjects.filter(p=>p.id!==id);
+  saveIndexLocal(allProjects);
+  showToast('ลบโครงการออกจากรายการแล้ว');
+  renderHome();
+}
+
+// ─── NAV ───
+function setView(v,no){
+  view=v;activePeriod=no||null;
+  document.querySelectorAll('.side-item').forEach(el=>el.classList.remove('active'));
+  if(v==='summary'){const el=document.getElementById('nav-summary');if(el)el.classList.add('active')}
+  if(v==='new'){const el=document.getElementById('nav-new');if(el)el.classList.add('active')}
+  if((v==='detail'||v==='edit')&&no){const el=document.getElementById('nav-p-'+no);if(el)el.classList.add('active')}
+  renderMain();
+}
+function goNew(){editInputs={};editDate='';setView('new')}
+
+function renderMain(){
+  document.getElementById('top-name').textContent=proj.name||pid;
+  document.getElementById('top-sub').textContent=proj.contractor||'';
+  renderSidebar();
+  const m=document.getElementById('main');
+  if(view==='summary')m.innerHTML=renderSummary();
+  else if(view==='new')m.innerHTML=renderForm(null);
+  else if(view==='detail')m.innerHTML=renderDetail(activePeriod);
+  else if(view==='edit')m.innerHTML=renderForm(activePeriod);
+}
+
+function renderSidebar(){
+  const sp=document.getElementById('side-periods');if(!sp)return;
+  sp.innerHTML=`<div class="side-item" id="nav-summary" onclick="setView('summary')">📊 สรุปยอดรวม</div>
+  <div class="side-item" id="nav-new" onclick="goNew()">➕ เพิ่มงวดใหม่</div>
+  <hr class="side-divider">
+  `+periods.map(p=>`
+    <div class="side-item" id="nav-p-${p.no}" onclick="setView('detail',${p.no})">
+      <span style="width:20px;height:20px;background:#1B3A6B;border-radius:4px;display:inline-flex;align-items:center;justify-content:center;font-size:10px;color:#F47920;font-weight:700;flex-shrink:0">${p.no}</span>
+      งวดที่ ${p.no}
+      <span style="margin-left:auto;font-size:10px;color:#475569">${p.date?p.date.slice(5):''}</span>
+    </div>`).join('');
+  if(view==='summary'){const el=document.getElementById('nav-summary');if(el)el.classList.add('active')}
+  if(view==='new'){const el=document.getElementById('nav-new');if(el)el.classList.add('active')}
+  if((view==='detail'||view==='edit')&&activePeriod){const el=document.getElementById('nav-p-'+activePeriod);if(el)el.classList.add('active')}
+}
+
+// ─── SUMMARY ───
+function renderSummary(){
+  const cv=cvWithVat();
+  let cumG=0;periods.forEach(p=>{cumG+=calcTot(p.inputs,proj.vatRate).grand});
+  const rem=cv-cumG,prog=cv>0?cumG/cv:0;
+  const kpis=`<div class="kpi-row">
+    <div class="kpi" style="border-top:3px solid #3b82f6"><div class="kpi-lbl">มูลค่าสัญญา (รวม VAT)</div><div class="kpi-val" style="color:#60a5fa">${N(cv)}</div><div class="kpi-sub">บาท</div></div>
+    <div class="kpi" style="border-top:3px solid #F47920"><div class="kpi-lbl">รวมเบิกสะสม</div><div class="kpi-val" style="color:#F47920">${N(cumG)}</div><div class="kpi-sub">${periods.length} งวด</div></div>
+    <div class="kpi" style="border-top:3px solid #22c55e"><div class="kpi-lbl">คงเหลือ</div><div class="kpi-val" style="color:#4ade80">${N(rem)}</div><div class="kpi-sub">บาท</div></div>
+    <div class="kpi" style="border-top:3px solid #a78bfa"><div class="kpi-lbl">ความคืบหน้า</div><div class="kpi-val" style="color:#c4b5fd">${P(prog)}</div><div class="kpi-sub">สะสม</div></div>
+  </div>`;
+  const progCard=`<div class="card" style="padding:14px 18px">
+    <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+      <span style="font-size:12px;font-weight:600;color:#94a3b8">ความคืบหน้าสะสม</span>
+      <span style="font-size:12px;font-weight:700;color:#F47920">${P(prog)}</span>
+    </div>
+    <div class="prog-bg"><div class="prog-fill" style="width:${Math.min(prog*100,100).toFixed(1)}%"></div></div>
+  </div>`;
+  let chart='';
+  if(periods.length>0){
+    const vals=periods.map(p=>calcTot(p.inputs,proj.vatRate).grand);
+    const maxV=Math.max(...vals,1);
+    const bars=vals.map((v,i)=>`<div class="bar-col" onclick="setView('detail',${i+1})">
+      <div class="bar-lbl">${N(v/1e6,1)}M</div>
+      <div class="bar-fill" style="height:${Math.max((v/maxV)*100,4).toFixed(0)}px"></div>
+      <div class="bar-lbl">งวด${i+1}</div></div>`).join('');
+    chart=`<div class="card"><div class="card-hd"><span class="card-hd-title">📊 กราฟยอดเบิกแต่ละงวด</span></div>
+      <div style="padding:18px 16px 12px"><div class="chart-wrap">${bars}</div></div></div>`;
+  }
+  let tbl='';
+  if(periods.length===0){
+    tbl=`<div class="card"><div class="empty"><div class="empty-icon">📝</div>
+      <div style="font-size:14px;font-weight:600;color:#64748b;margin-bottom:14px">ยังไม่มีงวดที่บันทึก</div>
+      <button class="btn btn-orange" onclick="goNew()">+ เพิ่มงวดแรก</button>
+    </div></div>`;
+  } else {
+    let cum2=0;
+    const rows=periods.map(p=>{
+      const t=calcTot(p.inputs,proj.vatRate);cum2+=t.grand;
+      return `<tr class="sum-row" onclick="setView('detail',${p.no})">
+        <td class="c" style="color:#F47920;font-weight:700">${p.no}</td><td class="c">${p.date||'-'}</td>
+        <td class="r">${N(t.base)}</td><td class="r">${N(t.vat)}</td>
+        <td class="r" style="color:#F47920;font-weight:700">${N(t.grand)}</td>
+        <td class="r">${N(cum2)}</td><td class="r">${N(cv-cum2)}</td>
+        <td class="r" style="color:#a78bfa;font-weight:700">${P(cum2/cv)}</td>
+        <td class="c" onclick="event.stopPropagation()">
+          <div class="btn-group" style="justify-content:center">
+            <button class="btn btn-sm" onclick="startEdit(${p.no})">✏️</button>
+            <button class="btn btn-danger btn-sm" onclick="delPeriod(${p.no})">🗑</button>
+          </div>
+        </td>
+      </tr>`;}).join('');
+    const sb=periods.reduce((a,p)=>a+calcTot(p.inputs,proj.vatRate).base,0);
+    const sv=periods.reduce((a,p)=>a+calcTot(p.inputs,proj.vatRate).vat,0);
+    tbl=`<div class="card">
+      <div class="card-hd"><span class="card-hd-title">ตารางสรุปยอดทุกงวด</span><span class="badge">${periods.length} งวด</span></div>
+      <div class="tbl-wrap"><table>
+        <thead><tr><th>งวดที่</th><th>วันที่</th><th>ขอเบิก(ไม่รวมVAT)</th><th>VAT</th><th>รวม(รวมVAT)</th><th>สะสม</th><th>คงเหลือ</th><th>%</th><th style="min-width:80px"></th></tr></thead>
+        <tbody>${rows}</tbody>
+        <tfoot><tr>
+          <td colspan="2" style="background:#F47920;color:#fff;font-weight:700;text-align:center">รวม</td>
+          <td class="r" style="background:#F47920;color:#fff;font-weight:700">${N(sb)}</td>
+          <td class="r" style="background:#F47920;color:#fff;font-weight:700">${N(sv)}</td>
+          <td class="r" style="background:#F47920;color:#fff;font-weight:800">${N(cumG)}</td>
+          <td colspan="4" style="background:rgba(244,121,32,0.15)"></td>
+        </tr></tfoot>
+      </table></div>
+      <div class="tbl-actions">
+        <button class="btn btn-sm" onclick="exportCSV()">📤 Export CSV</button>
+        <button class="btn btn-sm btn-navy" onclick="exportPDFSummary()">🖨 Print สรุป</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="ph"><div><div class="ph-title">📊 ${proj.name||pid}</div><div class="ph-sub">${proj.workType||''}</div></div><button class="btn btn-orange" onclick="goNew()">+ เพิ่มงวดใหม่</button></div>${kpis}${progCard}${chart}${tbl}`;
+}
+
+// ─── FORM ───
+function renderForm(editNo){
+  const isEdit=editNo!=null,newNo=isEdit?editNo:periods.length+1;
+  const cum=calcCumExcl(editNo);
+  let rows='';
+  WORK.forEach(g=>{
+    rows+=`<tr class="grp-row"><td colspan="13">${g.g}. ${g.label}</td></tr>`;
+    g.items.forEach(s=>{
+      const tq=parseFloat(editInputs[s.id]||0),tv=tq*s.rate;
+      const cq=cum[s.id]||0,cv2=cq*s.rate,rq=s.qty>0?s.qty-cq:0;
+      rows+=`<tr>
+        <td class="l" style="padding-left:14px">${s.desc}</td>
+        <td class="r">${s.qty>0?N(s.qty,0):'-'}</td><td class="c">${s.unit}</td>
+        <td class="r">${s.rate>0?N(s.rate):'-'}</td>
+        <td class="r">${s.qty>0&&s.rate>0?N(s.qty*s.rate):'-'}</td>
+        <td style="text-align:right;background:rgba(34,197,94,0.08)"><input class="qty-inp" type="number" min="0" step="any" value="${editInputs[s.id]||''}" placeholder="0" oninput="editInputs['${s.id}']=this.value;updateTotals()"></td>
+        <td class="r" id="fv-${s.id}">${tv>0?N(tv):'-'}</td>
+        <td class="r">${cq>0?N(cq,2):'-'}</td><td class="r">${s.qty>0&&cq>0?P(cq/s.qty):'-'}</td>
+        <td class="r">${cv2>0?N(cv2):'-'}</td>
+        <td class="r">${rq>0?N(rq,2):'-'}</td><td class="r">${s.qty>0&&rq>0?P(rq/s.qty):'-'}</td>
+        <td class="r">${rq>0&&s.rate>0?N(rq*s.rate):'-'}</td>
+      </tr>`;
+    });
+  });
+  const t=calcTot(editInputs,proj.vatRate||7);
+  return `
+  <div class="ph">
+    <div><div class="ph-title">${isEdit?'✏️ แก้ไข':'➕ เพิ่ม'}งวดที่ ${newNo}</div><div class="ph-sub">กรอกปริมาณงานในช่องสีเขียว</div></div>
+    <div class="btn-group">
+      <button class="btn" onclick="setView('summary')">← ยกเลิก</button>
+      <button class="btn btn-orange" onclick="savePeriod(${newNo},${isEdit})">💾 บันทึกงวดที่ ${newNo}</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="card-hd-title">ใบแสดงรายละเอียดการเบิกเงิน</span><span class="badge">งวดที่ ${newNo}</span></div>
+    <div class="meta-grid">
+      <div class="meta-cell"><div class="meta-lbl">โครงการ</div><div class="meta-val">${proj.name||pid}</div></div>
+      <div class="meta-cell"><div class="meta-lbl">ผู้รับเหมา</div><div class="meta-val">${proj.contractor||''}</div></div>
+      <div class="meta-cell"><div class="meta-lbl">วันที่ส่งงาน</div>
+        <input class="inp" type="date" id="form-date" value="${editDate}" oninput="editDate=this.value" style="margin-top:3px;padding:5px 9px;font-size:12px">
+      </div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead>
+        <tr><th rowspan="2" style="text-align:left;min-width:185px">รายการ</th><th rowspan="2">ปริมาณรวม</th><th rowspan="2">หน่วย</th><th rowspan="2">ราคา/หน่วย</th><th rowspan="2">มูลค่ารวม</th>
+          <th colspan="2" class="th-or">งวดนี้</th><th colspan="3" class="th-bl">สะสม</th><th colspan="3" class="th-gr">คงเหลือ</th></tr>
+        <tr><th class="th-or">ปริมาณ</th><th class="th-or">มูลค่า (บาท)</th><th class="th-bl">ปริมาณ</th><th class="th-bl">%</th><th class="th-bl">มูลค่า</th><th class="th-gr">ปริมาณ</th><th class="th-gr">%</th><th class="th-gr">มูลค่า</th></tr>
+      </thead>
+      <tbody>${rows}</tbody>
+      <tfoot>
+        <tr class="tot-row"><td colspan="5" class="l">มูลค่างาน (ไม่รวม VAT)</td><td colspan="2" class="r" id="ft-base">${N(t.base)}</td><td colspan="6"></td></tr>
+        <tr class="vat-row"><td colspan="5" class="l">VAT ${proj.vatRate||7}%</td><td colspan="2" class="r" id="ft-vat">${N(t.vat)}</td><td colspan="6"></td></tr>
+        <tr class="grd-row"><td colspan="5" class="l">รวมทั้งหมด (รวม VAT)</td><td colspan="2" class="r" id="ft-grand">${N(t.grand)}</td><td colspan="6"></td></tr>
+      </tfoot>
+    </table></div>
+  </div>
+  <div class="btn-group" style="justify-content:flex-end">
+    <button class="btn" onclick="setView('summary')">← ยกเลิก</button>
+    <button class="btn btn-orange" onclick="savePeriod(${newNo},${isEdit})">💾 บันทึกงวดที่ ${newNo}</button>
+  </div>`;
+}
+
+function updateTotals(){
+  const t=calcTot(editInputs,proj.vatRate||7);
+  ALL.forEach(s=>{const v=(parseFloat(editInputs[s.id])||0)*s.rate;const el=document.getElementById('fv-'+s.id);if(el)el.textContent=v>0?N(v):'-'});
+  const b=document.getElementById('ft-base'),vt=document.getElementById('ft-vat'),g=document.getElementById('ft-grand');
+  if(b)b.textContent=N(t.base);if(vt)vt.textContent=N(t.vat);if(g)g.textContent=N(t.grand);
+}
+
+// ─── DETAIL ───
+function renderDetail(no){
+  const p=periods.find(x=>x.no===no);if(!p)return'<div class="empty">ไม่พบงวดนี้</div>';
+  const t=calcTot(p.inputs,proj.vatRate),cum=calcCum(periods,no);
+  let cumG2=0;periods.filter(x=>x.no<=no).forEach(x=>{cumG2+=calcTot(x.inputs,proj.vatRate).grand});
+  const prog=cvWithVat()>0?cumG2/cvWithVat():0;
+  let rows='';
+  WORK.forEach(g=>{
+    rows+=`<tr class="grp-row"><td colspan="13">${g.g}. ${g.label}</td></tr>`;
+    g.items.forEach(s=>{
+      const tq=parseFloat(p.inputs?.[s.id]||0),tv=tq*s.rate,cq=cum[s.id]||0,cv2=cq*s.rate,rq=s.qty>0?s.qty-cq:0;
+      rows+=`<tr>
+        <td class="l" style="padding-left:14px">${s.desc}</td>
+        <td class="r">${s.qty>0?N(s.qty,0):'-'}</td><td class="c">${s.unit}</td>
+        <td class="r">${s.rate>0?N(s.rate):'-'}</td><td class="r">${s.qty>0&&s.rate>0?N(s.qty*s.rate):'-'}</td>
+        <td class="r" style="background:rgba(34,197,94,0.1);color:#86efac">${tq>0?N(tq,2):'-'}</td>
+        <td class="r" style="background:rgba(34,197,94,0.1);color:#86efac">${tv>0?N(tv):'-'}</td>
+        <td class="r">${cq>0?N(cq,2):'-'}</td><td class="r">${s.qty>0&&cq>0?P(cq/s.qty):'-'}</td>
+        <td class="r">${cv2>0?N(cv2):'-'}</td>
+        <td class="r">${rq>0?N(rq,2):'-'}</td><td class="r">${s.qty>0&&rq>0?P(rq/s.qty):'-'}</td>
+        <td class="r">${rq>0&&s.rate>0?N(rq*s.rate):'-'}</td>
+      </tr>`;
+    });
+  });
+  return `
+  <div class="ph">
+    <div><div class="ph-title">📄 ใบเบิกงวดที่ ${no}</div><div class="ph-sub">วันที่: ${p.date||'-'} · ${proj.name||pid}</div></div>
+    <div class="btn-group">
+      <button class="btn" onclick="setView('summary')">← กลับ</button>
+      <button class="btn btn-sm" onclick="startEdit(${no})">✏️ แก้ไข</button>
+      <button class="btn btn-sm btn-navy" onclick="printPeriod(${no})">🖨 Print</button>
+      <button class="btn btn-danger btn-sm" onclick="delPeriod(${no})">🗑 ลบ</button>
+    </div>
+  </div>
+  <div class="kpi-row">
+    <div class="kpi" style="border-top:3px solid #3b82f6"><div class="kpi-lbl">ขอเบิก (ไม่รวม VAT)</div><div class="kpi-val" style="color:#60a5fa">${N(t.base)}</div></div>
+    <div class="kpi" style="border-top:3px solid #F47920"><div class="kpi-lbl">VAT ${proj.vatRate||7}%</div><div class="kpi-val" style="color:#F47920">${N(t.vat)}</div></div>
+    <div class="kpi" style="border-top:3px solid #22c55e"><div class="kpi-lbl">รวมขอเบิก (รวม VAT)</div><div class="kpi-val" style="color:#4ade80">${N(t.grand)}</div></div>
+    <div class="kpi" style="border-top:3px solid #a78bfa"><div class="kpi-lbl">% สะสม</div><div class="kpi-val" style="color:#c4b5fd">${P(prog)}</div></div>
+  </div>
+  <div class="card">
+    <div class="card-hd"><span class="card-hd-title">รายละเอียดการเบิกเงิน — งวดที่ ${no}</span><span class="badge">${p.date||'-'}</span></div>
+    <div class="meta-grid">
+      <div class="meta-cell"><div class="meta-lbl">โครงการ</div><div class="meta-val">${proj.name||pid}</div></div>
+      <div class="meta-cell"><div class="meta-lbl">ผู้รับเหมา</div><div class="meta-val">${proj.contractor||''}</div></div>
+      <div class="meta-cell"><div class="meta-lbl">ประเภทงาน</div><div class="meta-val">${proj.workType||''}</div></div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead>
+        <tr><th rowspan="2" style="text-align:left;min-width:185px">รายการ</th><th rowspan="2">ปริมาณรวม</th><th rowspan="2">หน่วย</th><th rowspan="2">ราคา/หน่วย</th><th rowspan="2">มูลค่ารวม</th>
+          <th colspan="2" class="th-or">งวดนี้</th><th colspan="3" class="th-bl">สะสม</th><th colspan="3" class="th-gr">คงเหลือ</th></tr>
+        <tr><th class="th-or">ปริมาณ</th><th class="th-or">มูลค่า (บาท)</th><th class="th-bl">ปริมาณ</th><th class="th-bl">%</th><th class="th-bl">มูลค่า</th><th class="th-gr">ปริมาณ</th><th class="th-gr">%</th><th class="th-gr">มูลค่า</th></tr>
+      </thead>
+      <tbody>${rows}</tbody>
+      <tfoot>
+        <tr class="tot-row"><td colspan="5" class="l">มูลค่างาน (ไม่รวม VAT)</td><td colspan="2" class="r">${N(t.base)}</td><td colspan="6"></td></tr>
+        <tr class="vat-row"><td colspan="5" class="l">VAT ${proj.vatRate||7}%</td><td colspan="2" class="r">${N(t.vat)}</td><td colspan="6"></td></tr>
+        <tr class="grd-row"><td colspan="5" class="l">รวมทั้งหมด (รวม VAT)</td><td colspan="2" class="r">${N(t.grand)}</td><td colspan="6"></td></tr>
+      </tfoot>
+    </table></div>
+  </div>`;
+}
+
+// ─── ACTIONS ───
+function startEdit(no){const p=periods.find(x=>x.no===no);if(!p)return;editInputs={...p.inputs};editDate=p.date||'';setView('edit',no)}
+
+async function savePeriod(no,isEdit){
+  const d=document.getElementById('form-date');
+  const rec={no,date:d?d.value:editDate,inputs:{...editInputs}};
+  const entry=allProjects.find(p=>p.id===pid);
+  if(!entry)return;
+  try{
+    if(isEdit){
+      const idx=periods.findIndex(x=>x.no===no);
+      if(idx>=0)periods[idx]=rec;
+      await rewritePeriodsToSheet(entry.spreadsheetId, periods);
+    } else {
+      periods.push(rec);periods.sort((a,b)=>a.no-b.no);
+      await addPeriodToSheet(entry.spreadsheetId, rec);
+      entry.periodCount=periods.length;
+      saveIndexLocal(allProjects);
+    }
+    setView('detail',no);showToast((isEdit?'แก้ไข':'บันทึก')+'งวดที่ '+no+' สำเร็จ ✓');
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+e.message,'er')}
+}
+
+async function delPeriod(no){
+  if(!confirm('ต้องการลบงวดที่ '+no+' ใช่หรือไม่?'))return;
+  const entry=allProjects.find(p=>p.id===pid);
+  if(!entry)return;
+  periods=periods.filter(p=>p.no!==no);
+  try{
+    await rewritePeriodsToSheet(entry.spreadsheetId, periods);
+    entry.periodCount=periods.length;
+    saveIndexLocal(allProjects);
+    setView('summary');showToast('ลบงวดที่ '+no+' แล้ว');
+  }catch(e){showToast('ลบไม่สำเร็จ: '+e.message,'er')}
+}
+
+function openProjectModal(){
+  document.getElementById('f-name').value=proj.name||'';
+  document.getElementById('f-contractor').value=proj.contractor||'';
+  document.getElementById('f-type').value=proj.workType||'';
+  document.getElementById('f-cv').value=proj.contractValue||'';
+  document.getElementById('f-vat').value=proj.vatRate||7;
+  document.getElementById('modal-project').style.display='flex';
+}
+function closeModal(id){document.getElementById(id).style.display='none'}
+
+async function saveProject(){
+  const p={name:document.getElementById('f-name').value.trim(),contractor:document.getElementById('f-contractor').value.trim(),workType:document.getElementById('f-type').value.trim(),contractValue:parseFloat(document.getElementById('f-cv').value)||0,vatRate:parseFloat(document.getElementById('f-vat').value)||7};
+  const entry=allProjects.find(x=>x.id===pid);
+  if(!entry)return;
+  try{
+    proj=p;
+    entry.name=p.name;
+    await saveProjectToSheet(entry.spreadsheetId, p);
+    saveIndexLocal(allProjects);
+    closeModal('modal-project');renderMain();showToast('บันทึกข้อมูลโครงการแล้ว ✓');
+  }catch(e){showToast('บันทึกไม่สำเร็จ: '+e.message,'er')}
+}
+
+// ─── PRINT/EXPORT ───
+function buildPrintCSS(){return`<style>*{box-sizing:border-box}body{font-family:'Sarabun','Noto Sans Thai',Arial,sans-serif;margin:20px;font-size:12px;color:#111}h2{font-size:16px;text-align:center;margin-bottom:4px;color:#1B3A6B}h3{font-size:12px;text-align:center;color:#555;margin-bottom:14px}.info{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;padding:10px;background:#f0f4f8;border-radius:4px;font-size:11px}table{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:12px}th{background:#1B3A6B;color:white;padding:6px 8px;text-align:center;font-weight:700;font-size:10px}td{padding:5px 7px;border-bottom:1px solid #e2e8f0}td.r{text-align:right;font-family:monospace}.tot-r td{background:#1B3A6B;color:white;font-weight:700}.vat-r td{background:#F47920;color:white;font-weight:700}.grd-r td{background:#0f2549;color:#F47920;font-weight:800;font-size:13px}button{margin-top:12px;padding:9px 22px;background:#1B3A6B;color:white;border:none;border-radius:5px;cursor:pointer;font-size:13px}@media print{button{display:none}body{margin:10px}}</style>`}
+
+function exportCSV(){
+  const hdr='งวดที่,วันที่,ขอเบิก(ไม่รวมVAT),VAT,รวม(รวมVAT),สะสม,คงเหลือ,%\n';
+  let cum=0;const cv=cvWithVat();
+  const rows=periods.map(p=>{const t=calcTot(p.inputs,proj.vatRate);cum+=t.grand;return[p.no,p.date||'',t.base.toFixed(2),t.vat.toFixed(2),t.grand.toFixed(2),cum.toFixed(2),(cv-cum).toFixed(2),((cum/cv)*100).toFixed(1)+'%'].join(',')}).join('\n');
+  const blob=new Blob(['\ufeff'+hdr+rows],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`${pid}-summary.csv`;a.click();
+  showToast('Export CSV สำเร็จ ✓');
+}
+
+function exportPDFSummary(){
+  const cv=cvWithVat();let cum=0;
+  const rows=periods.map(p=>{const t=calcTot(p.inputs,proj.vatRate);cum+=t.grand;return`<tr><td style="text-align:center">${p.no}</td><td style="text-align:center">${p.date||'-'}</td><td class="r">${N(t.base)}</td><td class="r">${N(t.vat)}</td><td class="r" style="color:#F47920;font-weight:700">${N(t.grand)}</td><td class="r">${N(cum)}</td><td class="r">${N(cv-cum)}</td><td class="r">${P(cum/cv)}</td></tr>`}).join('');
+  const sb=periods.reduce((a,p)=>a+calcTot(p.inputs,proj.vatRate).base,0),sv=periods.reduce((a,p)=>a+calcTot(p.inputs,proj.vatRate).vat,0);
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>สรุปยอด</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">${buildPrintCSS()}</head><body><h2>ตารางสรุปยอดรายการส่งงาน</h2><h3>${proj.name} | ${proj.contractor}</h3><div class="info"><div><b>ประเภทงาน:</b> ${proj.workType}</div><div><b>มูลค่าสัญญา(รวมVAT):</b> ${N(cv)} บาท</div><div><b>จำนวนงวด:</b> ${periods.length} งวด</div></div><table><thead><tr><th>งวดที่</th><th>วันที่</th><th>ขอเบิก(ไม่รวมVAT)</th><th>VAT</th><th>รวม(รวมVAT)</th><th>สะสม</th><th>คงเหลือ</th><th>%</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="2" style="background:#F47920;color:#fff;font-weight:700;text-align:center">รวม</td><td class="r" style="background:#F47920;color:#fff;font-weight:700">${N(sb)}</td><td class="r" style="background:#F47920;color:#fff;font-weight:700">${N(sv)}</td><td class="r" style="background:#F47920;color:#fff;font-weight:700">${N(cum)}</td><td colspan="3" style="background:rgba(244,121,32,0.1)"></td></tr></tfoot></table><button onclick="window.print()">🖨 พิมพ์ / บันทึก PDF</button></body></html>`;
+  const b=new Blob([html],{type:'text/html'});window.open(URL.createObjectURL(b),'_blank');
+  showToast('เปิดหน้า Print แล้ว ✓');
+}
+
+function printPeriod(no){
+  const p=periods.find(x=>x.no===no);if(!p)return;
+  const t=calcTot(p.inputs,proj.vatRate),cum=calcCum(periods,no);
+  let rows='';WORK.forEach(g=>{rows+=`<tr><td colspan="7" style="background:#1B3A6B;color:white;font-weight:700;padding:6px 10px">${g.g}. ${g.label}</td></tr>`;g.items.forEach(s=>{const tq=parseFloat(p.inputs?.[s.id]||0),tv=tq*s.rate,cq=cum[s.id]||0;rows+=`<tr><td style="padding-left:14px">${s.desc}</td><td class="r">${s.qty>0?N(s.qty,0):'-'}</td><td style="text-align:center">${s.unit}</td><td class="r">${s.rate>0?N(s.rate):'-'}</td><td class="r" style="background:#fffde7">${tq>0?N(tq,2):'-'}</td><td class="r" style="background:#fffde7">${tv>0?N(tv):'-'}</td><td class="r">${cq>0?N(cq,2):'-'}</td></tr>`})});
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>งวดที่ ${no}</title><link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;700&display=swap" rel="stylesheet">${buildPrintCSS()}</head><body><h2>ใบแสดงรายละเอียด — งวดที่ ${no}</h2><h3>${proj.name} | ${proj.contractor}</h3><table><thead><tr><th>รายการ</th><th>ปริมาณรวม</th><th>หน่วย</th><th>ราคา/หน่วย</th><th>ปริมาณงวดนี้</th><th>มูลค่างวดนี้</th><th>สะสม</th></tr></thead><tbody>${rows}</tbody><tfoot><tr><td colspan="4">มูลค่างาน(ไม่รวมVAT)</td><td colspan="3" class="r">${N(t.base)} บาท</td></tr><tr><td colspan="4">VAT ${proj.vatRate||7}%</td><td colspan="3" class="r">${N(t.vat)} บาท</td></tr><tr><td colspan="4">รวม(รวมVAT)</td><td colspan="3" class="r">${N(t.grand)} บาท</td></tr></tfoot></table><button onclick="window.print()">Print</button></body></html>`;
+  const b=new Blob([html],{type:'text/html'});
+  window.open(URL.createObjectURL(b),'_blank');
+}
+</script>
+</body>
+</html>
