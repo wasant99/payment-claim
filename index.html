@@ -206,7 +206,7 @@ tr.sum-row{cursor:pointer}tr.sum-row:hover td{background:rgba(27,58,107,0.4)}
     <div class="fg"><label>ชื่อโครงการ</label><input class="inp" id="np-name" placeholder="เช่น คณาสิริ เอแบค บางนา"></div>
     <div class="fg"><label>เจ้าของโครงการ</label><input class="inp" id="np-contractor"></div>
     <div class="fg"><label>ประเภทงาน</label><input class="inp" id="np-type"></div>
-    <div class="fg"><label>มูลค่าสัญญา (ไม่รวม VAT) บาท</label><input class="inp" id="np-cv" type="number" step="0.01"></div>
+    <div class="fg"><label>มูลค่าสัญญา (ไม่รวม VAT) บาท <span style="color:#22c55e;font-size:10px">(คำนวณอัตโนมัติ)</span></label><input class="inp" id="np-cv" type="number" step="0.01" readonly style="background:#0a1628;color:#4ade80;cursor:not-allowed;border-color:rgba(34,197,94,0.3)"></div>
     <div class="fg"><label>อัตรา VAT (%)</label><input class="inp" id="np-vat" type="number" value="7" step="0.1"></div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('modal-new-proj')">ยกเลิก</button>
@@ -222,19 +222,26 @@ tr.sum-row{cursor:pointer}tr.sum-row:hover td{background:rgba(27,58,107,0.4)}
     <div class="fg"><label>ชื่อโครงการ</label><input class="inp" id="f-name"></div>
     <div class="fg"><label>เจ้าของโครงการ</label><input class="inp" id="f-contractor"></div>
     <div class="fg"><label>ประเภทงาน</label><input class="inp" id="f-type"></div>
-    <div class="fg"><label>มูลค่าสัญญา (ไม่รวม VAT) บาท</label><input class="inp" id="f-cv" type="number" step="0.01"></div>
+    <div class="fg"><label>มูลค่าสัญญา (ไม่รวม VAT) บาท <span style="color:#22c55e;font-size:10px">(คำนวณอัตโนมัติจากรายการด้านล่าง)</span></label><input class="inp" id="f-cv" type="number" step="0.01" readonly style="background:#0a1628;color:#4ade80;cursor:not-allowed;border-color:rgba(34,197,94,0.3)"></div>
     <div class="fg"><label>อัตรา VAT (%)</label><input class="inp" id="f-vat" type="number" step="0.1"></div>
     <hr style="border-color:rgba(255,255,255,0.08);margin:16px 0">
     <div style="font-size:12px;font-weight:700;color:#F47920;margin-bottom:10px">📋 ปริมาณและราคาต่อหน่วย (ตามสัญญา)</div>
-    <div style="max-height:320px;overflow-y:auto;border:1px solid rgba(255,255,255,0.08);border-radius:8px">
-      <table style="width:100%;border-collapse:collapse;font-size:11px">
-        <thead><tr>
-          <th style="background:#1B3A6B;color:#fff;padding:6px 8px;text-align:left;position:sticky;top:0">รายการ</th>
-          <th style="background:#1B3A6B;color:#fff;padding:6px 8px;text-align:center;white-space:nowrap;position:sticky;top:0">ปริมาณ</th>
-          <th style="background:#1B3A6B;color:#fff;padding:6px 8px;text-align:center;white-space:nowrap;position:sticky;top:0">ราคา/หน่วย</th>
-        </tr></thead>
-        <tbody id="f-work-rows"></tbody>
-      </table>
+    <div style="border:1px solid rgba(255,255,255,0.08);border-radius:8px;overflow:hidden">
+      <div style="max-height:320px;overflow-y:auto">
+        <table style="width:100%;border-collapse:collapse;font-size:11px">
+          <thead><tr>
+            <th style="background:#1B3A6B;color:#fff;padding:6px 8px;text-align:left;position:sticky;top:0">รายการ</th>
+            <th style="background:#1B3A6B;color:#fff;padding:6px 8px;text-align:center;white-space:nowrap;position:sticky;top:0">ปริมาณ</th>
+            <th style="background:#1B3A6B;color:#fff;padding:6px 8px;text-align:center;white-space:nowrap;position:sticky;top:0">ราคา/หน่วย</th>
+            <th style="background:#1B3A6B;color:#fff;padding:6px 8px;text-align:center;white-space:nowrap;position:sticky;top:0">มูลค่า</th>
+          </tr></thead>
+          <tbody id="f-work-rows"></tbody>
+        </table>
+      </div>
+      <div style="background:#0f2549;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;border-top:2px solid #F47920">
+        <span style="font-size:12px;font-weight:700;color:#94a3b8">รวมมูลค่าสัญญา (ไม่รวม VAT)</span>
+        <span style="font-size:15px;font-weight:800;color:#4ade80;font-family:monospace" id="f-work-total">0.00</span>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('modal-project')">ยกเลิก</button>
@@ -829,12 +836,13 @@ function renderForm(editNo){
         <tr><th class="th-or">ปริมาณ</th><th class="th-or">มูลค่า (บาท)</th><th class="th-bl">ปริมาณ</th><th class="th-bl">%</th><th class="th-bl">มูลค่า</th><th class="th-gr">ปริมาณ</th><th class="th-gr">%</th><th class="th-gr">มูลค่า</th></tr>
       </thead>
       <tbody>${rows}</tbody>
-      <tfoot>
-        <tr class="tot-row"><td colspan="5" class="l">มูลค่างาน (ไม่รวม VAT)</td><td colspan="2" class="r" id="ft-base">${N(t.base)}</td><td colspan="6"></td></tr>
-        <tr class="vat-row"><td colspan="5" class="l">VAT ${proj.vatRate||7}%</td><td colspan="2" class="r" id="ft-vat">${N(t.vat)}</td><td colspan="6"></td></tr>
-        <tr class="grd-row"><td colspan="5" class="l">รวมทั้งหมด (รวม VAT)</td><td colspan="2" class="r" id="ft-grand">${N(t.grand)}</td><td colspan="6"></td></tr>
-      </tfoot>
+
     </table></div>
+  </div>
+  <div style="background:#1e2d4a;border:1px solid rgba(255,255,255,0.08);border-radius:10px;padding:14px 20px;margin-bottom:14px;display:flex;gap:24px;justify-content:flex-end;align-items:center;flex-wrap:wrap">
+    <div style="text-align:right"><div style="font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase">มูลค่างาน (ไม่รวม VAT)</div><div style="font-size:16px;font-weight:700;color:#60a5fa;font-family:monospace" id="ft-base">${N(t.base)}</div></div>
+    <div style="text-align:right"><div style="font-size:10px;color:#64748b;font-weight:700;text-transform:uppercase">VAT ${proj.vatRate||7}%</div><div style="font-size:16px;font-weight:700;color:#F47920;font-family:monospace" id="ft-vat">${N(t.vat)}</div></div>
+    <div style="text-align:right;background:rgba(244,121,32,0.1);padding:8px 16px;border-radius:8px;border:1px solid rgba(244,121,32,0.3)"><div style="font-size:10px;color:#F47920;font-weight:700;text-transform:uppercase">รวมทั้งหมด (รวม VAT)</div><div style="font-size:20px;font-weight:800;color:#F47920;font-family:monospace" id="ft-grand">${N(t.grand)}</div></div>
   </div>
   <div class="btn-group" style="justify-content:flex-end">
     <button class="btn" onclick="setView('summary')">← ยกเลิก</button>
@@ -993,6 +1001,22 @@ async function delPeriod(no){
   }catch(e){showToast('ลบไม่สำเร็จ: '+e.message,'er')}
 }
 
+function recalcContractValue(){
+  let total=0;
+  WORK.forEach(g=>g.items.forEach(s=>{
+    const q=parseFloat(document.getElementById('wi-qty-'+s.id)?.value)||0;
+    const r=parseFloat(document.getElementById('wi-rate-'+s.id)?.value)||0;
+    const mv=q*r;
+    total+=mv;
+    const el=document.getElementById('wi-mv-'+s.id);
+    if(el)el.textContent=mv>0?mv.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}):'-';
+  }));
+  const tot=document.getElementById('f-work-total');
+  if(tot)tot.textContent=total.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const cv=document.getElementById('f-cv');
+  if(cv)cv.value=total.toFixed(2);
+}
+
 function openProjectModal(){
   document.getElementById('f-code').value=proj.code||'';
   document.getElementById('f-name').value=proj.name||'';
@@ -1007,14 +1031,17 @@ function openProjectModal(){
     rows+=`<tr><td colspan="3" style="background:#0f2549;color:#F47920;font-weight:700;padding:5px 8px;font-size:10px">${g.g}. ${g.label}</td></tr>`;
     g.items.forEach(s=>{
       const wi=workItems[s.id]||{};
+      const mv=(wi.qty||0)*(wi.rate||0);
       rows+=`<tr style="border-bottom:1px solid rgba(255,255,255,0.05)">
         <td style="padding:4px 8px;color:#cbd5e1">${s.desc}</td>
-        <td style="padding:4px 6px;text-align:center"><input class="qty-inp" type="number" min="0" step="any" style="width:100px" value="${wi.qty||''}" placeholder="0" id="wi-qty-${s.id}"></td>
-        <td style="padding:4px 6px;text-align:center"><input class="qty-inp" type="number" min="0" step="any" style="width:120px" value="${wi.rate||''}" placeholder="0.00" id="wi-rate-${s.id}"></td>
+        <td style="padding:4px 6px;text-align:center"><input class="qty-inp" type="number" min="0" step="any" style="width:100px" value="${wi.qty||''}" placeholder="0" id="wi-qty-${s.id}" oninput="recalcContractValue()"></td>
+        <td style="padding:4px 6px;text-align:center"><input class="qty-inp" type="number" min="0" step="any" style="width:120px" value="${wi.rate||''}" placeholder="0.00" id="wi-rate-${s.id}" oninput="recalcContractValue()"></td>
+        <td style="padding:4px 8px;text-align:right;font-family:monospace;color:#94a3b8;font-size:11px" id="wi-mv-${s.id}">${mv>0?mv.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}):'-'}</td>
       </tr>`;
     });
   });
   document.getElementById('f-work-rows').innerHTML=rows;
+  recalcContractValue();
   document.getElementById('modal-project').style.display='flex';
 }
 function closeModal(id){document.getElementById(id).style.display='none'}
