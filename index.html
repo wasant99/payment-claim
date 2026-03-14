@@ -119,7 +119,20 @@ tr.sum-row{cursor:pointer}tr.sum-row:hover td{background:rgba(27,58,107,0.4)}
 <div id="app" style="display:none">
 <div class="topbar">
   <div class="brand">
-    <div class="brand-dot">S</div>
+    <div style="display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#F47920,#d4671b);border-radius:10px;padding:4px 10px 4px 6px">
+      <svg width="36" height="36" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+        <rect width="36" height="36" rx="8" fill="none"/>
+        <text x="18" y="14" text-anchor="middle" fill="#fff" font-family="Arial" font-weight="900" font-size="11">THC</text>
+        <rect x="6" y="17" width="24" height="2.5" rx="1" fill="#fff" opacity="0.9"/>
+        <polygon points="18,21 8,28 28,28" fill="#fff" opacity="0.85"/>
+        <rect x="14" y="23" width="4" height="5" fill="#F47920"/>
+      </svg>
+      <div>
+        <div style="font-size:11px;font-weight:800;color:#fff;letter-spacing:0.3px">THAI HAZEKAWA</div>
+        <div style="font-size:9px;color:rgba(255,255,255,0.75);letter-spacing:0.2px">Construction Co.,Ltd</div>
+      </div>
+    </div>
+    <div style="width:1px;height:28px;background:rgba(255,255,255,0.15);margin:0 4px"></div>
     <div>
       <div class="brand-name" id="top-name">ระบบใบส่งงาน</div>
       <div class="brand-sub" id="top-sub">Payment Claim System</div>
@@ -156,9 +169,23 @@ tr.sum-row{cursor:pointer}tr.sum-row:hover td{background:rgba(27,58,107,0.4)}
 <!-- Modals -->
 <div id="modal-new-proj" style="display:none" class="modal-bg" onclick="if(event.target===this)closeModal('modal-new-proj')">
   <div class="modal">
+    <div style="background:linear-gradient(135deg,#1B3A6B,#0f2549);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+      <svg width="44" height="44" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg">
+        <rect width="44" height="44" rx="10" fill="#F47920"/>
+        <text x="22" y="17" text-anchor="middle" fill="#fff" font-family="Arial" font-weight="900" font-size="13">THC</text>
+        <rect x="8" y="21" width="28" height="3" rx="1.5" fill="#fff" opacity="0.9"/>
+        <polygon points="22,26 10,35 34,35" fill="#fff" opacity="0.85"/>
+        <rect x="18" y="28" width="5" height="7" fill="#F47920"/>
+      </svg>
+      <div>
+        <div style="font-size:13px;font-weight:800;color:#fff">บริษัท ไทย ฮาเซคาวา คอนสตรัคชั่น จำกัด</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.6)">Thai Hazekawa Construction Co.,Ltd</div>
+      </div>
+    </div>
     <div class="modal-title">➕ เพิ่มโครงการใหม่</div>
-    <div class="fg"><label>ชื่อโครงการ</label><input class="inp" id="np-name" placeholder="เช่น โครงการ อภิทาวน์ ฉะเชิงเทรา"></div>
-    <div class="fg"><label>ชื่อผู้รับเหมา</label><input class="inp" id="np-contractor"></div>
+    <div class="fg"><label>รหัสโครงการ</label><input class="inp" id="np-code" placeholder="เช่น 1178, PRJ-001"></div>
+    <div class="fg"><label>ชื่อโครงการ</label><input class="inp" id="np-name" placeholder="เช่น คณาสิริ เอแบค บางนา"></div>
+    <div class="fg"><label>เจ้าของโครงการ</label><input class="inp" id="np-contractor"></div>
     <div class="fg"><label>ประเภทงาน</label><input class="inp" id="np-type"></div>
     <div class="fg"><label>มูลค่าสัญญา (ไม่รวม VAT) บาท</label><input class="inp" id="np-cv" type="number" step="0.01"></div>
     <div class="fg"><label>อัตรา VAT (%)</label><input class="inp" id="np-vat" type="number" value="7" step="0.1"></div>
@@ -172,8 +199,9 @@ tr.sum-row{cursor:pointer}tr.sum-row:hover td{background:rgba(27,58,107,0.4)}
 <div id="modal-project" style="display:none" class="modal-bg" onclick="if(event.target===this)closeModal('modal-project')">
   <div class="modal">
     <div class="modal-title">⚙ ตั้งค่าโครงการ</div>
+    <div class="fg"><label>รหัสโครงการ</label><input class="inp" id="f-code"></div>
     <div class="fg"><label>ชื่อโครงการ</label><input class="inp" id="f-name"></div>
-    <div class="fg"><label>ชื่อผู้รับเหมา</label><input class="inp" id="f-contractor"></div>
+    <div class="fg"><label>เจ้าของโครงการ</label><input class="inp" id="f-contractor"></div>
     <div class="fg"><label>ประเภทงาน</label><input class="inp" id="f-type"></div>
     <div class="fg"><label>มูลค่าสัญญา (ไม่รวม VAT) บาท</label><input class="inp" id="f-cv" type="number" step="0.01"></div>
     <div class="fg"><label>อัตรา VAT (%)</label><input class="inp" id="f-vat" type="number" step="0.1"></div>
@@ -456,7 +484,7 @@ function showSidebar(inProject){
   document.getElementById('btn-add-period').style.display=inProject?'':'none';
   document.getElementById('side-proj-lbl').style.display=inProject?'':'none';
   document.getElementById('side-new-btn').style.display=inProject?'':'none';
-  document.getElementById('top-name').textContent=inProject?(proj.name||pid):'ระบบใบส่งงาน';
+  document.getElementById('top-name').textContent=inProject?((proj.code?'['+proj.code+'] ':'')+( proj.name||pid)):'ระบบใบส่งงาน';
   document.getElementById('top-sub').textContent=inProject?(proj.contractor||''):'Payment Claim System';
 }
 
@@ -468,7 +496,7 @@ function renderHome(){
   const cards=allProjects.map(p=>`
     <div class="proj-card" style="position:relative">
       <div onclick="openProject('${p.id}')" style="cursor:pointer">
-        <div class="proj-card-name">${p.name||p.id}</div>
+        <div class="proj-card-name">${p.code?"["+p.code+"] ":""}${p.name||p.id}</div>
         <div class="proj-card-sub" style="font-size:10px;color:#334155">${p.spreadsheetId}</div>
         <div class="proj-card-meta"><span class="proj-card-badge">📋 ${p.periodCount||0} งวด</span></div>
       </div>
@@ -490,7 +518,7 @@ function renderHome(){
 
 // ─── NEW PROJECT ───
 function openNewProjectModal(){
-  ['np-name','np-contractor','np-type','np-cv'].forEach(id=>document.getElementById(id).value='');
+  ['np-code','np-name','np-contractor','np-type','np-cv'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('np-vat').value='7';
   document.getElementById('modal-new-proj').style.display='flex';
 }
@@ -498,7 +526,9 @@ function openNewProjectModal(){
 async function createProject(){
   const name=document.getElementById('np-name').value.trim();
   if(!name){showToast('กรุณาใส่ชื่อโครงการ','er');return}
+  const code=document.getElementById('np-code').value.trim();
   const projData={
+    code,
     name,
     contractor:document.getElementById('np-contractor').value.trim(),
     workType:document.getElementById('np-type').value.trim(),
@@ -682,7 +712,7 @@ function renderForm(editNo){
     <div class="card-hd"><span class="card-hd-title">ใบแสดงรายละเอียดการเบิกเงิน</span><span class="badge">งวดที่ ${newNo}</span></div>
     <div class="meta-grid">
       <div class="meta-cell"><div class="meta-lbl">โครงการ</div><div class="meta-val">${proj.name||pid}</div></div>
-      <div class="meta-cell"><div class="meta-lbl">ผู้รับเหมา</div><div class="meta-val">${proj.contractor||''}</div></div>
+      <div class="meta-cell"><div class="meta-lbl">เจ้าของโครงการ</div><div class="meta-val">${proj.contractor||''}</div></div>
       <div class="meta-cell"><div class="meta-lbl">วันที่ส่งงาน</div>
         <input class="inp" type="date" id="form-date" value="${editDate}" oninput="editDate=this.value" style="margin-top:3px;padding:5px 9px;font-size:12px">
       </div>
@@ -758,7 +788,7 @@ function renderDetail(no){
     <div class="card-hd"><span class="card-hd-title">รายละเอียดการเบิกเงิน — งวดที่ ${no}</span><span class="badge">${p.date||'-'}</span></div>
     <div class="meta-grid">
       <div class="meta-cell"><div class="meta-lbl">โครงการ</div><div class="meta-val">${proj.name||pid}</div></div>
-      <div class="meta-cell"><div class="meta-lbl">ผู้รับเหมา</div><div class="meta-val">${proj.contractor||''}</div></div>
+      <div class="meta-cell"><div class="meta-lbl">เจ้าของโครงการ</div><div class="meta-val">${proj.contractor||''}</div></div>
       <div class="meta-cell"><div class="meta-lbl">ประเภทงาน</div><div class="meta-val">${proj.workType||''}</div></div>
     </div>
     <div class="tbl-wrap"><table>
@@ -814,6 +844,7 @@ async function delPeriod(no){
 }
 
 function openProjectModal(){
+  document.getElementById('f-code').value=proj.code||'';
   document.getElementById('f-name').value=proj.name||'';
   document.getElementById('f-contractor').value=proj.contractor||'';
   document.getElementById('f-type').value=proj.workType||'';
@@ -824,7 +855,7 @@ function openProjectModal(){
 function closeModal(id){document.getElementById(id).style.display='none'}
 
 async function saveProject(){
-  const p={name:document.getElementById('f-name').value.trim(),contractor:document.getElementById('f-contractor').value.trim(),workType:document.getElementById('f-type').value.trim(),contractValue:parseFloat(document.getElementById('f-cv').value)||0,vatRate:parseFloat(document.getElementById('f-vat').value)||7};
+  const p={code:document.getElementById('f-code').value.trim(),name:document.getElementById('f-name').value.trim(),contractor:document.getElementById('f-contractor').value.trim(),workType:document.getElementById('f-type').value.trim(),contractValue:parseFloat(document.getElementById('f-cv').value)||0,vatRate:parseFloat(document.getElementById('f-vat').value)||7};
   const entry=allProjects.find(x=>x.id===pid);
   if(!entry)return;
   try{
