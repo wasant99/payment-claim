@@ -825,7 +825,7 @@ function renderForm(editNo){
     <div class="tbl-wrap"><table>
       <thead>
         <tr><th rowspan="2" style="text-align:left;min-width:185px">รายการ</th><th rowspan="2">ปริมาณรวม</th><th rowspan="2">หน่วย</th><th rowspan="2">ราคา/หน่วย</th><th rowspan="2">มูลค่ารวม</th>
-          <th colspan="2" class="th-or">งวดนี้</th><th colspan="3" class="th-bl">สะสม</th><th colspan="3" class="th-gr">คงเหลือ</th></tr>
+          <th colspan="2" class="th-or">เบิกครั้งนี้</th><th colspan="3" class="th-bl">สะสม</th><th colspan="3" class="th-gr">คงเหลือ</th></tr>
         <tr><th class="th-or">ปริมาณ</th><th class="th-or">มูลค่า (บาท)</th><th class="th-bl">ปริมาณ</th><th class="th-bl">%</th><th class="th-bl">มูลค่า</th><th class="th-gr">ปริมาณ</th><th class="th-gr">%</th><th class="th-gr">มูลค่า</th></tr>
       </thead>
       <tbody>${rows}</tbody>
@@ -883,11 +883,11 @@ function renderDetail(no){
         <td class="r">${getQty(s.id)>0?N(getQty(s.id),0):'-'}</td><td class="c">${s.unit}</td>
         <td class="r">${getRate(s.id)>0?N(getRate(s.id)):'-'}</td>
         <td class="r">${getQty(s.id)>0&&getRate(s.id)>0?N(getQty(s.id)*getRate(s.id)):'-'}</td>
-        <td class="r" style="background:rgba(34,197,94,0.1);color:#86efac">${tq>0?N(tq,2):'-'}</td>
-        <td class="r" style="background:rgba(34,197,94,0.1);color:#86efac">${tv>0?N(tv):'-'}</td>
         <td class="r" style="background:rgba(30,63,122,0.3)">${pq>0?N(pq,2):'-'}</td>
         <td class="r" style="background:rgba(30,63,122,0.3)">${getQty(s.id)>0&&pq>0?P(pq/getQty(s.id)):'-'}</td>
         <td class="r" style="background:rgba(30,63,122,0.3)">${pv>0?N(pv):'-'}</td>
+        <td class="r" style="background:rgba(34,197,94,0.1);color:#86efac">${tq>0?N(tq,2):'-'}</td>
+        <td class="r" style="background:rgba(34,197,94,0.1);color:#86efac">${tv>0?N(tv):'-'}</td>
         <td class="r">${cq>0?N(cq,2):'-'}</td><td class="r">${getQty(s.id)>0&&cq>0?P(cq/getQty(s.id)):'-'}</td>
         <td class="r">${cv2>0?N(cv2):'-'}</td>
         <td class="r">${rq>0?N(rq,2):'-'}</td><td class="r">${getQty(s.id)>0&&rq>0?P(rq/getQty(s.id)):'-'}</td>
@@ -923,14 +923,14 @@ function renderDetail(no){
           <th rowspan="2" style="text-align:left;min-width:185px">รายการ</th>
           <th rowspan="2">ปริมาณรวม</th><th rowspan="2">หน่วย</th>
           <th rowspan="2">ราคา/หน่วย</th><th rowspan="2">มูลค่ารวม</th>
-          <th colspan="2" class="th-or">ครั้งนี้</th>
           <th colspan="3" style="background:#1e3f7a;color:#fff;text-align:center">สะสมถึงครั้งที่แล้ว</th>
+          <th colspan="2" class="th-or">เบิกครั้งนี้</th>
           <th colspan="3" class="th-bl">สะสมทั้งหมด</th>
           <th colspan="3" class="th-gr">คงเหลือ</th>
         </tr>
         <tr>
-          <th class="th-or">ปริมาณ</th><th class="th-or">มูลค่า (บาท)</th>
           <th style="background:#1e3f7a;color:#fff">ปริมาณ</th><th style="background:#1e3f7a;color:#fff">%</th><th style="background:#1e3f7a;color:#fff">มูลค่า</th>
+          <th class="th-or">ปริมาณ</th><th class="th-or">มูลค่า (บาท)</th>
           <th class="th-bl">ปริมาณ</th><th class="th-bl">%</th><th class="th-bl">มูลค่า</th>
           <th class="th-gr">ปริมาณ</th><th class="th-gr">%</th><th class="th-gr">มูลค่า</th>
         </tr>
@@ -1096,11 +1096,11 @@ function printPeriod(no){
         <td style="text-align:center">${s.unit}</td>
         <td class="r">${getRate(s.id)>0?N(getRate(s.id)):'-'}</td>
         <td class="r">${getQty(s.id)>0&&getRate(s.id)>0?N(getQty(s.id)*getRate(s.id)):'-'}</td>
-        <td class="r" style="background:#f0fff4">${tq>0?N(tq,2):'-'}</td>
-        <td class="r" style="background:#f0fff4">${tv>0?N(tv):'-'}</td>
         <td class="r" style="background:#e8f0fe">${pq>0?N(pq,2):'-'}</td>
         <td class="r" style="background:#e8f0fe">${getQty(s.id)>0&&pq>0?P(pq/getQty(s.id)):'-'}</td>
         <td class="r" style="background:#e8f0fe">${pv>0?N(pv):'-'}</td>
+        <td class="r" style="background:#f0fff4">${tq>0?N(tq,2):'-'}</td>
+        <td class="r" style="background:#f0fff4">${tv>0?N(tv):'-'}</td>
         <td class="r">${cq>0?N(cq,2):'-'}</td>
         <td class="r">${getQty(s.id)>0&&cq>0?P(cq/getQty(s.id)):'-'}</td>
         <td class="r">${cv2>0?N(cv2):'-'}</td>
@@ -1144,14 +1144,14 @@ function printPeriod(no){
           <th rowspan="2" style="text-align:left;min-width:120px">รายการ</th>
           <th rowspan="2">ปริมาณรวม</th><th rowspan="2">หน่วย</th>
           <th rowspan="2">ราคา/หน่วย</th><th rowspan="2">มูลค่ารวม</th>
-          <th colspan="2" class="or">ครั้งนี้</th>
           <th colspan="3" class="bl">สะสมถึงครั้งที่แล้ว</th>
+          <th colspan="2" class="or">เบิกครั้งนี้</th>
           <th colspan="3">สะสมทั้งหมด</th>
           <th colspan="3" class="gr">คงเหลือ</th>
         </tr>
         <tr>
-          <th class="or">ปริมาณ</th><th class="or">มูลค่า</th>
           <th class="bl">ปริมาณ</th><th class="bl">%</th><th class="bl">มูลค่า</th>
+          <th class="or">ปริมาณ</th><th class="or">มูลค่า</th>
           <th>ปริมาณ</th><th>%</th><th>มูลค่า</th>
           <th class="gr">ปริมาณ</th><th class="gr">%</th><th class="gr">มูลค่า</th>
         </tr>
