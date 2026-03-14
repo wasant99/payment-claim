@@ -1192,25 +1192,28 @@ function printPeriod(no){
       <tbody>${rows}</tbody>
       <tfoot>
         <tr class="tot">
-          <td colspan="5">มูลค่างาน (ไม่รวม VAT)</td>
-          <td class="r">${tPrev.base>0?N(tPrev.base):'-'}</td><td></td><td class="r">${tPrev.base>0?N(tPrev.base):'-'}</td>
-          <td class="r">${N(t.base)}</td><td class="r">บาท</td>
-          <td class="r">${N(tCum.base)}</td><td></td><td class="r">${N(tCum.base)}</td>
-          <td colspan="3" class="r">${N(proj.contractValue-tCum.base)}</td>
+          <td colspan="4">มูลค่างาน (ไม่รวม VAT)</td>
+          <td class="r">${N(proj.contractValue)}</td>
+          <td colspan="2"></td><td class="r">${tPrev.base>0?N(tPrev.base):'-'}</td>
+          <td></td><td class="r">${N(t.base)}</td>
+          <td colspan="2"></td><td class="r">${N(tCum.base)}</td>
+          <td colspan="2"></td><td class="r">${N(proj.contractValue-tCum.base)}</td>
         </tr>
         <tr class="vat">
-          <td colspan="5">VAT ${proj.vatRate||7}%</td>
-          <td class="r">${tPrev.vat>0?N(tPrev.vat):'-'}</td><td></td><td class="r">${tPrev.vat>0?N(tPrev.vat):'-'}</td>
-          <td class="r">${N(t.vat)}</td><td class="r">บาท</td>
-          <td class="r">${N(tCum.vat)}</td><td></td><td class="r">${N(tCum.vat)}</td>
+          <td colspan="4">VAT ${proj.vatRate||7}%</td>
+          <td class="r">${N(proj.contractValue*(proj.vatRate||7)/100)}</td>
+          <td colspan="2"></td><td class="r">${tPrev.vat>0?N(tPrev.vat):'-'}</td>
+          <td></td><td class="r">${N(t.vat)}</td>
+          <td colspan="2"></td><td class="r">${N(tCum.vat)}</td>
           <td colspan="3"></td>
         </tr>
         <tr class="grd">
-          <td colspan="5">รวมทั้งหมด (รวม VAT)</td>
-          <td class="r">${tPrev.grand>0?N(tPrev.grand):'-'}</td><td></td><td class="r">${tPrev.grand>0?N(tPrev.grand):'-'}</td>
-          <td class="r">${N(t.grand)}</td><td class="r">บาท</td>
-          <td class="r">${N(tCum.grand)}</td><td></td><td class="r">${N(tCum.grand)}</td>
-          <td colspan="3" class="r">${N(cv-tCum.grand)}</td>
+          <td colspan="4">รวมทั้งหมด (รวม VAT)</td>
+          <td class="r">${N(cvWithVat())}</td>
+          <td colspan="2"></td><td class="r">${tPrev.grand>0?N(tPrev.grand):'-'}</td>
+          <td></td><td class="r">${N(t.grand)}</td>
+          <td colspan="2"></td><td class="r">${N(tCum.grand)}</td>
+          <td colspan="2"></td><td class="r">${N(cv-tCum.grand)}</td>
         </tr>
       </tfoot>
     </table>
