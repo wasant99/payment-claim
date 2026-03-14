@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="th">
 <head>
@@ -496,8 +497,8 @@ function renderHome(){
   const cards=allProjects.map(p=>`
     <div class="proj-card" style="position:relative">
       <div onclick="openProject('${p.id}')" style="cursor:pointer">
-        <div class="proj-card-name">${p.code?"["+p.code+"] ":""}${p.name||p.id}</div>
-        <div class="proj-card-sub" style="font-size:10px;color:#334155">${p.spreadsheetId}</div>
+        <div class="proj-card-name">${p.name||p.id}</div>
+        ${p.code?'<div style="font-size:11px;color:#F47920;font-weight:700;margin-bottom:6px">🔖 รหัส: '+p.code+'</div>':''}
         <div class="proj-card-meta"><span class="proj-card-badge">📋 ${p.periodCount||0} งวด</span></div>
       </div>
       <button onclick="deleteProjectConfirm('${p.id}','${(p.name||p.id).replace(/'/g,'')}')" style="position:absolute;top:10px;right:10px;background:rgba(220,38,38,0.15);border:1px solid rgba(220,38,38,0.3);color:#f87171;border-radius:6px;padding:3px 8px;font-size:11px;cursor:pointer;font-family:inherit">🗑 ลบ</button>
