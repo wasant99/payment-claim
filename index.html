@@ -690,7 +690,7 @@ function renderForm(editNo){
         <td class="r">${s.qty>0?N(s.qty,0):'-'}</td><td class="c">${s.unit}</td>
         <td class="r">${s.rate>0?N(s.rate):'-'}</td>
         <td class="r">${s.qty>0&&s.rate>0?N(s.qty*s.rate):'-'}</td>
-        ${s.qty===0
+        ${(s.qty===0 || rq<=0)
           ? `<td style="text-align:center;background:rgba(255,255,255,0.02);color:#1e293b">—</td>`
           : `<td style="text-align:right;background:rgba(34,197,94,0.08)"><input class="qty-inp" type="number" min="0" step="any" value="${editInputs[s.id]||''}" placeholder="0" oninput="validateQty(this,'${s.id}',${rq})"></td>`
         }
