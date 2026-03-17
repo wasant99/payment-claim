@@ -324,30 +324,56 @@ let pid='', proj={}, periods=[], view='home', activePeriod=null, editInputs={}, 
 // allProjects = [{name, sheetId, sheetName}]
 
 // ─── GOOGLE AUTH ───
+let _tokenClient = null;
+
 function signIn(){
-  const client = google.accounts.oauth2.initTokenClient({
+  _tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CLIENT_ID,
     scope: SCOPES,
     callback: async (resp) => {
       if(resp.error){ showToast('Login ไม่สำเร็จ: '+resp.error,'er'); return; }
       accessToken = resp.access_token;
-      // get user email - MUST complete before boot
-      try{
-        const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}});
-        const u = await r.json();
-        userEmail = u.email||u.name||'';
-        if(userEmail){
-          localStorage.setItem('pclaim_user_email', userEmail);
-          localStorage.setItem('pclaim_user_name', u.name||userEmail);
-        }
-        document.getElementById('user-email').textContent = userEmail;
-      }catch(e){ console.warn('userinfo failed',e); }
+      await fetchUserEmail();
       document.getElementById('login-screen').style.display='none';
       document.getElementById('app').style.display='block';
+      // Auto-refresh token every 45 min
+      startTokenRefresh();
       await boot();
     }
   });
-  client.requestAccessToken();
+  _tokenClient.requestAccessToken();
+}
+
+async function fetchUserEmail(){
+  try{
+    const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}});
+    if(!r.ok) return;
+    const u = await r.json();
+    userEmail = u.email||'';
+    if(userEmail){
+      localStorage.setItem('pclaim_user_email', userEmail);
+    }
+    document.getElementById('user-email').textContent = userEmail;
+  }catch(e){ console.warn('userinfo failed',e); }
+}
+
+function startTokenRefresh(){
+  // Refresh token every 45 minutes silently
+  setInterval(async ()=>{
+    if(!_tokenClient) return;
+    _tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: CLIENT_ID,
+      scope: SCOPES,
+      prompt: '',
+      callback: async (resp) => {
+        if(resp.error) return;
+        accessToken = resp.access_token;
+        await fetchUserEmail();
+        console.log('Token refreshed');
+      }
+    });
+    _tokenClient.requestAccessToken();
+  }, 45 * 60 * 1000);
 }
 
 function signOut(){
