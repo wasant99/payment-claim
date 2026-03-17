@@ -912,6 +912,27 @@ function updateTotals(){
 }
 
 // ─── DETAIL ───
+function renderActivityLog(logs){
+  if(!logs||logs.length===0) return '';
+  const rows = [...logs].reverse().map(function(l){
+    const bg = l.action==='เพิ่ม' ? 'rgba(34,197,94,0.2)' : 'rgba(244,121,32,0.2)';
+    const col = l.action==='เพิ่ม' ? '#4ade80' : '#F47920';
+    return '<tr>'
+      +'<td style="color:#94a3b8;font-size:12px;padding:5px 7px">'+(l.user||'-')+'</td>'
+      +'<td style="text-align:center;padding:5px 7px"><span style="background:'+bg+';color:'+col+';padding:2px 8px;border-radius:4px;font-size:11px">'+(l.action||'-')+'</span></td>'
+      +'<td style="text-align:center;font-family:monospace;font-size:11px;color:#64748b;padding:5px 7px">'+(l.datetime||'-')+'</td>'
+      +'</tr>';
+  }).join('');
+  return '<div class="card" style="margin-top:12px">'
+    +'<div class="card-hd"><span class="card-hd-title">📋 ประวัติการแก้ไข</span>'
+    +'<span class="badge">'+logs.length+' รายการ</span></div>'
+    +'<table style="min-width:auto"><thead><tr>'
+    +'<th style="text-align:left;min-width:180px">ผู้ใช้งาน</th>'
+    +'<th style="min-width:80px">การกระทำ</th>'
+    +'<th style="min-width:160px">วันที่/เวลา</th>'
+    +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
 function renderDetail(no){
   const p=periods.find(x=>x.no===no);if(!p)return'<div class="empty">ไม่พบงวดนี้</div>';
   const t=calcTot(p.inputs,proj.vatRate),cum=calcCum(periods,no);
@@ -996,19 +1017,7 @@ function renderDetail(no){
     <button class="btn btn-sm btn-navy" onclick="exportPDFSummary()">🖨 Print สรุป</button>
     <button class="btn btn-sm btn-navy" onclick="printPeriod(${no})">🖨 Print ใบเบิก</button>
   </div>
-  ${p.logs&&p.logs.length>0?`<div class="card" style="margin-top:12px">
-    <div class="card-hd"><span class="card-hd-title">📋 ประวัติการแก้ไข</span><span class="badge">${p.logs.length} รายการ</span></div>
-    <table style="min-width:auto"><thead><tr>
-      <th style="text-align:left;min-width:180px">ผู้ใช้งาน</th>
-      <th style="min-width:80px">การกระทำ</th>
-      <th style="min-width:160px">วันที่/เวลา</th>
-    </tr></thead><tbody>
-    \${[...p.logs].reverse().map(l=>\`<tr>
-      <td style="color:#94a3b8;font-size:12px">\${l.user||'-'}</td>
-      <td class="c"><span style="background:\${l.action==='เพิ่ม'?'rgba(34,197,94,0.2)':'rgba(244,121,32,0.2)'};color:\${l.action==='เพิ่ม'?'#4ade80':'#F47920'};padding:2px 8px;border-radius:4px;font-size:11px">\${l.action}</span></td>
-      <td class="c" style="font-family:monospace;font-size:11px;color:#64748b">\${l.datetime||'-'}</td>
-    </tr>\`).join('')}
-    </tbody></table></div>`:''}`;
+  ${renderActivityLog(p.logs)}`;
 }
 
 // ─── ACTIONS ───
