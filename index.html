@@ -331,14 +331,17 @@ function signIn(){
     callback: async (resp) => {
       if(resp.error){ showToast('Login ไม่สำเร็จ: '+resp.error,'er'); return; }
       accessToken = resp.access_token;
-      // get user email
+      // get user email - MUST complete before boot
       try{
         const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}});
         const u = await r.json();
-        userEmail = u.email||'';
-        if(userEmail) localStorage.setItem('pclaim_user_email', userEmail);
+        userEmail = u.email||u.name||'';
+        if(userEmail){
+          localStorage.setItem('pclaim_user_email', userEmail);
+          localStorage.setItem('pclaim_user_name', u.name||userEmail);
+        }
         document.getElementById('user-email').textContent = userEmail;
-      }catch(e){}
+      }catch(e){ console.warn('userinfo failed',e); }
       document.getElementById('login-screen').style.display='none';
       document.getElementById('app').style.display='block';
       await boot();
@@ -420,7 +423,12 @@ async function getSpreadsheetMeta(spreadsheetId){
 // Row format: [projectName, spreadsheetId]
 // Stored in localStorage for speed, synced on load
 
-function currentUser(){ return userEmail||localStorage.getItem('pclaim_user_email')||'ไม่ระบุ'; }
+function currentUser(){
+  if(userEmail) return userEmail;
+  const saved = localStorage.getItem('pclaim_user_email');
+  if(saved) { userEmail=saved; return saved; }
+  return 'ไม่ระบุ';
+}
 function getIndexKey(){ return 'pclaim_index_'+(userEmail||localStorage.getItem('pclaim_user_email')||'default'); }
 
 function loadIndexLocal(){
@@ -519,7 +527,10 @@ async function rewritePeriodsToSheet(spreadsheetId, periodList){
 // ─── BOOT ───
 async function boot(){
   // Restore email from localStorage if not yet set
-  if(!userEmail) userEmail = localStorage.getItem('pclaim_user_email')||'';
+  if(!userEmail){
+    userEmail = localStorage.getItem('pclaim_user_email')||'';
+    if(userEmail) document.getElementById('user-email').textContent = userEmail;
+  }
   allProjects = loadIndexLocal();
   await loadHome();
 }
