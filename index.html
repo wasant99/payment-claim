@@ -336,6 +336,7 @@ function signIn(){
         const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo',{headers:{Authorization:'Bearer '+accessToken}});
         const u = await r.json();
         userEmail = u.email||'';
+        if(userEmail) localStorage.setItem('pclaim_user_email', userEmail);
         document.getElementById('user-email').textContent = userEmail;
       }catch(e){}
       document.getElementById('login-screen').style.display='none';
@@ -419,7 +420,8 @@ async function getSpreadsheetMeta(spreadsheetId){
 // Row format: [projectName, spreadsheetId]
 // Stored in localStorage for speed, synced on load
 
-function getIndexKey(){ return 'pclaim_index_'+userEmail; }
+function currentUser(){ return userEmail||localStorage.getItem('pclaim_user_email')||'ไม่ระบุ'; }
+function getIndexKey(){ return 'pclaim_index_'+(userEmail||localStorage.getItem('pclaim_user_email')||'default'); }
 
 function loadIndexLocal(){
   try{ return JSON.parse(localStorage.getItem(getIndexKey())||'[]'); }catch(e){ return []; }
@@ -496,7 +498,7 @@ async function saveProjectToSheet(spreadsheetId, projData){
 async function addPeriodToSheet(spreadsheetId, period){
   setSyncing(true);
   try{
-    const log = JSON.stringify({user:userEmail, action:'เพิ่ม', datetime:new Date().toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})});
+    const log = JSON.stringify({user:currentUser(), action:'เพิ่ม', datetime:new Date().toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})});
     await sheetsAppend(spreadsheetId, 'data!A:D', [[period.no, period.date, JSON.stringify(period.inputs||{}), log]]);
   }finally{setSyncing(false);}
 }
@@ -509,7 +511,7 @@ async function rewritePeriodsToSheet(spreadsheetId, periodList){
       const now = new Date().toLocaleString('th-TH',{timeZone:'Asia/Bangkok'});
       const values = periodList.map(p=>{
         const logs = p.logs||[];
-        logs.push({user:userEmail, action:'แก้ไข', datetime:now});
+        logs.push({user:currentUser(), action:'แก้ไข', datetime:now});
         return [p.no, p.date, JSON.stringify(p.inputs||{}), JSON.stringify(logs)];
       });
       await sheetsSet(spreadsheetId, 'data!A3:D'+(periodList.length+2), values);
@@ -519,6 +521,8 @@ async function rewritePeriodsToSheet(spreadsheetId, periodList){
 
 // ─── BOOT ───
 async function boot(){
+  // Restore email from localStorage if not yet set
+  if(!userEmail) userEmail = localStorage.getItem('pclaim_user_email')||'';
   allProjects = loadIndexLocal();
   await loadHome();
 }
