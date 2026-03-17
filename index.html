@@ -461,7 +461,7 @@ function showToast(msg,type='ok'){
 // Sheet "data": Row1=headers, Row2=project JSON, Row3+=period rows [no, date, inputsJSON]
 
 async function loadProjectFromSheet(spreadsheetId){
-  const rows = await sheetsGet(spreadsheetId, 'data!A1:C200');
+  const rows = await sheetsGet(spreadsheetId, 'data!A1:D200');
   let projData = {};
   let periodList = [];
   if(rows.length>=2 && rows[1][0]){
@@ -471,7 +471,9 @@ async function loadProjectFromSheet(spreadsheetId){
     const r=rows[i];
     if(!r||!r[0]) continue;
     try{
-      periodList.push({no:parseInt(r[0]),date:r[1]||'',inputs:JSON.parse(r[2]||'{}')});
+      let logs=[];
+      if(r[3]){try{const l=JSON.parse(r[3]);logs=Array.isArray(l)?l:[l];}catch(e){}}
+      periodList.push({no:parseInt(r[0]),date:r[1]||'',inputs:JSON.parse(r[2]||'{}'),logs});
     }catch(e){}
   }
   periodList.sort((a,b)=>a.no-b.no);
@@ -494,18 +496,23 @@ async function saveProjectToSheet(spreadsheetId, projData){
 async function addPeriodToSheet(spreadsheetId, period){
   setSyncing(true);
   try{
-    await sheetsAppend(spreadsheetId, 'data!A:C', [[period.no, period.date, JSON.stringify(period.inputs||{})]]);
+    const log = JSON.stringify({user:userEmail, action:'เพิ่ม', datetime:new Date().toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})});
+    await sheetsAppend(spreadsheetId, 'data!A:D', [[period.no, period.date, JSON.stringify(period.inputs||{}), log]]);
   }finally{setSyncing(false);}
 }
 
 async function rewritePeriodsToSheet(spreadsheetId, periodList){
   setSyncing(true);
   try{
-    // Clear from row 3 down
-    await fetch(`${BASE}/${spreadsheetId}/values/${encodeURIComponent('data!A3:C500')}:clear`,{method:'POST',headers:sheetsHeaders()});
+    await fetch(`${BASE}/${spreadsheetId}/values/${encodeURIComponent('data!A3:D500')}:clear`,{method:'POST',headers:sheetsHeaders()});
     if(periodList.length>0){
-      const values = periodList.map(p=>[p.no, p.date, JSON.stringify(p.inputs||{})]);
-      await sheetsSet(spreadsheetId, 'data!A3:C'+(periodList.length+2), values);
+      const now = new Date().toLocaleString('th-TH',{timeZone:'Asia/Bangkok'});
+      const values = periodList.map(p=>{
+        const logs = p.logs||[];
+        logs.push({user:userEmail, action:'แก้ไข', datetime:now});
+        return [p.no, p.date, JSON.stringify(p.inputs||{}), JSON.stringify(logs)];
+      });
+      await sheetsSet(spreadsheetId, 'data!A3:D'+(periodList.length+2), values);
     }
   }finally{setSyncing(false);}
 }
@@ -530,6 +537,9 @@ async function loadProject(){
     proj = projData;
     periods = periodList;
     periods.sort((a,b)=>a.no-b.no);
+    // Sync periodCount back to local index
+    entry.periodCount = periods.length;
+    saveIndexLocal(allProjects);
   }catch(e){
     showToast('โหลดโครงการไม่สำเร็จ: '+e.message,'er');
     proj={};periods=[];
@@ -985,7 +995,20 @@ function renderDetail(no){
     <button class="btn btn-sm" onclick="exportCSVDetail(${no})">📤 Export CSV</button>
     <button class="btn btn-sm btn-navy" onclick="exportPDFSummary()">🖨 Print สรุป</button>
     <button class="btn btn-sm btn-navy" onclick="printPeriod(${no})">🖨 Print ใบเบิก</button>
-  </div>`;
+  </div>
+  ${p.logs&&p.logs.length>0?`<div class="card" style="margin-top:12px">
+    <div class="card-hd"><span class="card-hd-title">📋 ประวัติการแก้ไข</span><span class="badge">${p.logs.length} รายการ</span></div>
+    <table style="min-width:auto"><thead><tr>
+      <th style="text-align:left;min-width:180px">ผู้ใช้งาน</th>
+      <th style="min-width:80px">การกระทำ</th>
+      <th style="min-width:160px">วันที่/เวลา</th>
+    </tr></thead><tbody>
+    \${[...p.logs].reverse().map(l=>\`<tr>
+      <td style="color:#94a3b8;font-size:12px">\${l.user||'-'}</td>
+      <td class="c"><span style="background:\${l.action==='เพิ่ม'?'rgba(34,197,94,0.2)':'rgba(244,121,32,0.2)'};color:\${l.action==='เพิ่ม'?'#4ade80':'#F47920'};padding:2px 8px;border-radius:4px;font-size:11px">\${l.action}</span></td>
+      <td class="c" style="font-family:monospace;font-size:11px;color:#64748b">\${l.datetime||'-'}</td>
+    </tr>\`).join('')}
+    </tbody></table></div>`:''}`;
 }
 
 // ─── ACTIONS ───
