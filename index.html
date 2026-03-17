@@ -498,8 +498,8 @@ async function saveProjectToSheet(spreadsheetId, projData){
 async function addPeriodToSheet(spreadsheetId, period){
   setSyncing(true);
   try{
-    const log = JSON.stringify({user:currentUser(), action:'เพิ่ม', datetime:new Date().toLocaleString('th-TH',{timeZone:'Asia/Bangkok'})});
-    await sheetsAppend(spreadsheetId, 'data!A:D', [[period.no, period.date, JSON.stringify(period.inputs||{}), log]]);
+    const logs = period.logs||[];
+    await sheetsAppend(spreadsheetId, 'data!A:D', [[period.no, period.date, JSON.stringify(period.inputs||{}), JSON.stringify(logs)]]);
   }finally{setSyncing(false);}
 }
 
@@ -508,11 +508,8 @@ async function rewritePeriodsToSheet(spreadsheetId, periodList){
   try{
     await fetch(`${BASE}/${spreadsheetId}/values/${encodeURIComponent('data!A3:D500')}:clear`,{method:'POST',headers:sheetsHeaders()});
     if(periodList.length>0){
-      const now = new Date().toLocaleString('th-TH',{timeZone:'Asia/Bangkok'});
       const values = periodList.map(p=>{
-        const logs = p.logs||[];
-        logs.push({user:currentUser(), action:'แก้ไข', datetime:now});
-        return [p.no, p.date, JSON.stringify(p.inputs||{}), JSON.stringify(logs)];
+        return [p.no, p.date, JSON.stringify(p.inputs||{}), JSON.stringify(p.logs||[])];
       });
       await sheetsSet(spreadsheetId, 'data!A3:D'+(periodList.length+2), values);
     }
@@ -1036,15 +1033,23 @@ async function savePeriod(no,isEdit){
     return;
   }
   const d=document.getElementById('form-date');
+  const now=new Date().toLocaleString('th-TH',{timeZone:'Asia/Bangkok'});
+  const user=currentUser();
   const rec={no,date:d?d.value:editDate,inputs:{...editInputs}};
   const entry=allProjects.find(p=>p.id===pid);
   if(!entry)return;
   try{
     if(isEdit){
+      // Preserve existing logs, add new entry only for this period
+      const existing=periods.find(x=>x.no===no);
+      const logs=[...(existing?.logs||[]),{user,action:'แก้ไข',datetime:now}];
+      rec.logs=logs;
       const idx=periods.findIndex(x=>x.no===no);
       if(idx>=0)periods[idx]=rec;
-      await rewritePeriodsToSheet(entry.spreadsheetId, periods);
+      await rewritePeriodsToSheet(entry.spreadsheetId, periods, no);
     } else {
+      const logs=[{user,action:'เพิ่ม',datetime:now}];
+      rec.logs=logs;
       periods.push(rec);periods.sort((a,b)=>a.no-b.no);
       await addPeriodToSheet(entry.spreadsheetId, rec);
       entry.periodCount=periods.length;
